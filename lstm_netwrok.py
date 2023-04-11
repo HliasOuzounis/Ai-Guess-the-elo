@@ -7,21 +7,34 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, num_classes)
-        self.output = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax(dim=1)
 
-    def forward(self, X, h0=None, c0=None):
+    def forward(self, X, h0=None, c0=None, train=True):
+        # If X is a single sample, add a batch dimension
+        if X.dim() == 2:
+            X = X.unsqueeze(0)
+            
         if c0 is None:
             c0 = torch.zeros(self.num_layers, X.size(0), self.hidden_size)
         if h0 is None:
             h0 = torch.zeros(self.num_layers, X.size(0), self.hidden_size)
 
         out, (hn, cn) = self.lstm(X, (h0, c0))
+        
+        # Packed batches test, not working
+        # padded_output, output_lens = torch.nn.utils.rnn.pad_packed_sequence(out, batch_first=True, total_length=5)
+        # out = self.fc(padded_output[:, -1, :])
+        
         out = self.fc(out[:, -1, :])
-        propabilities = self.output(out)
+        
+        # CrossEntropyLoss applies the softmax function itself
+        # Only apply softmax to get predictions, not training
+        if not train:
+            out = self.softmax(out)
 
-        return propabilities, (hn, cn)
+        return out, (hn, cn)
 
 
 def initialize_model(input_size, hidden_size, num_layers, num_classes):
@@ -36,30 +49,39 @@ def initialize_model(input_size, hidden_size, num_layers, num_classes):
 
 
 def train_model(model, optimizer, loss_func, train_data, num_epochs):
-
+   
+    # train_data = [X_train, y_train]
+    # x_train.shape = (batch_size, num_moves, input_size)
+    # y_train.shape = (batch_size, num_classes)
     for epoch in range(num_epochs):
-        for batch, (x_train, y_train) in enumerate(train_data):
+        for batch, (x_train, y_train) in enumerate(zip(*train_data)):
+            batch_size = len(x_train)
             optimizer.zero_grad()
 
             cell_states = torch.zeros(
-                model.num_layers, x_train.size(0), model.hidden_size
+                model.num_layers, batch_size, model.hidden_size
             )
             hidden_states = torch.zeros(
-                model.num_layers, x_train.size(0), model.hidden_size
+                model.num_layers, batch_size, model.hidden_size
             )
-
+            
             # BATCH GAMES TOGETHER BASED ON NUMBER OF MOVES
-            for move in x_train:
-                propabilities, (hidden_states, cell_states) = model(
-                    move, hidden_states, cell_states
+            # Train the model on each move => 
+            # + More samples and better predictions for small games           
+            # - Computationally expensive
+            # Will maybe change to transformers later
+            for num_moves in range(1, x_train.shape[1] + 1):
+                propabilities, (_hidden_states, _cell_states) = model(
+                    x_train[:, :num_moves, :], hidden_states, cell_states
                 )
-
+                
                 loss = loss_func(propabilities, y_train)
                 loss.backward()
+
                 optimizer.step()
 
-            if batch % 100 == 0:
-                print(f"Epoch: {epoch}, Batch: {batch}, Loss: {loss.item()}")
+            if True: #batch % 100 == 0:
+                print(f"Epoch: {epoch + 1}, Batch: {batch + 1}, Loss: {loss.item()}")
 
 
 def main():
@@ -71,10 +93,17 @@ def main():
     # With the complexity of the position in mind and previous guesses, guess an ELO range for the player
 
     # TODO: how many stockfish evaluations
-    input_size = 64 * 12 + 2  # + - for stockfish evaluation
-    hidden_size = 128
+    input_size = 2
+    # input_size = 64 * 12 + 2 # + - for stockfish evaluation
+    hidden_size = 16
+    # hidden_size = 64
     num_layers = 2
 
     # Target output is a vector of 10 ranges for the players ELO
     # <700, 700-900, 900-1100, 1100-1300, 1300-1500, 1500-1700, 1700-1900, 1900-2100, 2100-2300, >2300
-    num_classes = 10
+    num_classes = 2
+    # num_classes = 10
+    
+    lstm, optimizer, loss_func = initialize_model(input_size, hidden_size, num_layers, num_classes)
+    
+    return lstm, optimizer, loss_func
