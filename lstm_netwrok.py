@@ -55,6 +55,11 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
     # y_train.shape = (batch_size, num_classes)
     for epoch in range(num_epochs):
         for batch, (x_train, y_train) in enumerate(zip(*train_data)):
+            
+            print(len(x_train))
+            print(x_train.shape)
+            print(y_train.shape)
+        
             batch_size = len(x_train)
             optimizer.zero_grad()
 
@@ -67,7 +72,7 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
             
             # BATCH GAMES TOGETHER BASED ON NUMBER OF MOVES
             # Train the model on each move => 
-            # + More samples and better predictions for small games           
+            # + More samples and better predictions for small games    
             # - Computationally expensive
             # Will maybe change to transformers later
             for num_moves in range(1, x_train.shape[1] + 1):
@@ -94,13 +99,13 @@ def main():
 
     # TODO: how many stockfish evaluations
     input_size = 2
-    # input_size = 64 * 12 + 2 # + - for stockfish evaluation
+    # input_size = 64 * 12 + 14 # for stockfish evaluation, top 10 moves and win draw lose odds
     hidden_size = 16
     # hidden_size = 64
     num_layers = 2
 
     # Target output is a vector of 10 ranges for the players ELO
-    # <700, 700-900, 900-1100, 1100-1300, 1300-1500, 1500-1700, 1700-1900, 1900-2100, 2100-2300, >2300
+    # <900, 900-1100, 1100-1300, 1300-1500, 1500-1700, 1700-1900, 1900-2100, 2100-2300, 2300-2500, >2500
     num_classes = 2
     # num_classes = 10
     

@@ -1,0 +1,27 @@
+% pgn-extract -A datasets/pgn_args -o datasets/outputs/900-1100.pgn datasets/lichess_db_standard_rated_2018-06.pgn
+
+:--quiet
+:-Wuci
+
+:--stopafter 1000
+
+:--nobadresults
+:--detag Site
+:--detag White
+:--detag Black
+:--detag Round
+:--detag Date
+:--detag UTCDate
+:--detag UTCTime
+:--detag WhiteRatingDiff
+:--detag BlackRatingDiff
+:--detag ECO
+:--detag Opening
+:--detag Termination
+:--detag TimeControl
+:--detag WhiteTitle
+:--detag BlackTitle
+
+:-t
+WhiteElo >= "900"
+BlackElo < "1100"
