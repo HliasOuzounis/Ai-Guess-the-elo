@@ -1,3 +1,5 @@
 lichess*.pgn
 lstm_test.py
 __pycache__
+*.pgn
+*/*.pt

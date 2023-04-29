@@ -22,6 +22,6 @@
 :--detag WhiteTitle
 :--detag BlackTitle
 
-:-t
-WhiteElo >= "900"
-BlackElo < "1100"
+% :-t
+% WhiteElo >= "900"
+% BlackElo < "1100"

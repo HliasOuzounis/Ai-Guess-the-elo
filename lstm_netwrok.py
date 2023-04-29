@@ -9,7 +9,7 @@ class LSTM(nn.Module):
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, num_classes)
-        self.softmax = nn.Softmax(dim=1)
+        # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, X, h0=None, c0=None, train=True):
         # If X is a single sample, add a batch dimension
@@ -22,7 +22,6 @@ class LSTM(nn.Module):
             h0 = torch.zeros(self.num_layers, X.size(0), self.hidden_size)
 
         out, (hn, cn) = self.lstm(X, (h0, c0))
-        
         # Packed batches test, not working
         # padded_output, output_lens = torch.nn.utils.rnn.pad_packed_sequence(out, batch_first=True, total_length=5)
         # out = self.fc(padded_output[:, -1, :])
@@ -31,8 +30,8 @@ class LSTM(nn.Module):
         
         # CrossEntropyLoss applies the softmax function itself
         # Only apply softmax to get predictions, not training
-        if not train:
-            out = self.softmax(out)
+        # if not train:
+        #     out = self.softmax(out)
 
         return out, (hn, cn)
 
@@ -56,10 +55,6 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
     for epoch in range(num_epochs):
         for batch, (x_train, y_train) in enumerate(zip(*train_data)):
             
-            print(len(x_train))
-            print(x_train.shape)
-            print(y_train.shape)
-        
             batch_size = len(x_train)
             optimizer.zero_grad()
 
@@ -75,6 +70,12 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
             # + More samples and better predictions for small games    
             # - Computationally expensive
             # Will maybe change to transformers later
+            if x_train.dim() == 2:
+                x_train = x_train.unsqueeze(0)
+            
+            if y_train.dim() == 1:
+                y_train = y_train.unsqueeze(0)
+            
             for num_moves in range(1, x_train.shape[1] + 1):
                 propabilities, (_hidden_states, _cell_states) = model(
                     x_train[:, :num_moves, :], hidden_states, cell_states
