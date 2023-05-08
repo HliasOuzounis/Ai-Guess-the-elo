@@ -1,3 +1,4 @@
+
 import torch
 from torch import nn, optim
 
@@ -125,19 +126,22 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
 def main():
     # For the input we pass a bitboard representation of the position,
     # That means a 8 x 8 matrix with 12 values for each square, one for each piece and color
+    # Plus 1 to show whos turn it is to move
     # Plus 2 for the stockfish evaluations before and after the move
     # The hope is that the LSTM can analyze the position and calculate a "complexity" score
     # and using the stockfish evaluation, compare how worse the human move is to the computer move.
     # With the complexity of the position in mind and previous guesses, guess an ELO range for the player
 
-    input_size = 64 * 12 + 2
-    hidden_size = 64
+    input_size = 64 * 12 + 1 + 2
+    hidden_size = 128
     num_layers = 2
 
     # Target output is a vector of 10 ranges for the players ELO
     # <900, 900-1100, 1100-1300, 1300-1500, 1500-1700, 1700-1900, 1900-2100, 2100-2300, 2300-2500, >2500
     num_classes = 10
+    # Or a single value for the players ELO
+    num_classes = 1
     
-    lstm, optimizer, loss_func = initialize_model(input_size, hidden_size, num_layers, num_classes)
+    lstm, optimizer = initialize_model(input_size, hidden_size, num_layers, num_classes)
     
-    return lstm, optimizer, loss_func
+    return lstm, optimizer, 

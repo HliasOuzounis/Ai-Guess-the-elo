@@ -2,8 +2,8 @@ import chess.engine
 import chess.pgn
 import torch
 
-from lstm_netwrok import LSTM
-from analyze_games import analyze_game
+from models.lstm_network import LSTM
+from analyze_game import analyze_game
 
 import argparse
 
