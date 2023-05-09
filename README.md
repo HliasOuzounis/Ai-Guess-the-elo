@@ -18,10 +18,14 @@ The two models trained, as explained in the [Decisions Explained](models/Decisio
 Both models were trained on 2000 games played on lichess.org in June 2018, 200 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. They were trained for 10 epochs, enough to decrease the loss while also avoiding overfitting.
 #### Single Output model
 For the single output model Mean Squared Error was used as the loss function.
+
+
 ![loss plot](models/loss_plots/singe_output_model.png "training loss Single output model")
 
 #### Rating Ranges model
 For the rating ranges model Cross Validation was used as the loss function. The problem is not exactly a classification problem because the weighted averages are used in the end for the elo prediction but it was the best I could find.
+
+
 ![loss plot](models/loss_plots/rating_ranges_model.png "training loss Rating ranges model")
 It is important to note that a random classification model with 10 classes would have an average Cross Validation loss of `-ln(1/10) = 2.303`. That means the rating ranges model is a bit better than a random one.
 
@@ -32,19 +36,19 @@ We can clearly see a downwards trend for both models that plateaus around the 6t
 ### Predictions
 
 
-To rate the accuracy of the models they are tested on 300 games (= 600 predictions, 2 per game for white and black) and pitted againts two other trivual models. A random guessing one and one that always predicts a rating around the middle of the rating ladder (800 - 3000). We also give the models a leeway of 200 points on their guess. As the leeway increases so do the correct guesses but the precision is lowered.
+To rate the accuracy of the models they are tested on 300 games (= 600 predictions, 2 per game for white and black) and pitted againts two other trivial models. A random guessing one and one that always predicts a rating around the middle of the rating ladder (800 - 3000). We also give the models a leeway of 200 points on their guess. As the leeway increases so do the correct guesses but the precision is lowered.
 
 
 #### Trivial models
 
 
-The other 2 trivial models seem to have around a 17-23% accuracy for a 200 point leeway and the average difference between the real value and the prediction is 500 points for the constant model and 700 for the random model. The constant models edges out the random one by a bit, both in accuracy and in average. Both of them are not that good in guessing the real elo of a player.
+The 2 trivial models seem to have around a 17-23% accuracy for a 200 point leeway and the average difference between the real value and the prediction is 500 points for the constant model and 700 for the random model. The constant models edges out the random one by a bit, both in accuracy and in average. Both of them are not that good in guessing the real elo of a player.
 
 
 #### Single Output model
 
 
-Running the same tests in the trained lstm model with the single output we get an accuracy of 30.5%. In general, for different testing and training data, it hovers around 30-35%. Additionally the average elo difference of the prediction and the real value is about 350-400 points. That's better than the other models. 
+Running the same tests in the trained lstm model with the single output we get an accuracy of 30.5%. In general, for different testing and training data, it hovers around 30-35%. Additionally the average elo difference of the prediction and the real value is about 350-400 points. That's almost twice as good as the other models.
 
 
 #### Rating Ranges model
