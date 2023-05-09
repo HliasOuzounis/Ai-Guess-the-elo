@@ -19,14 +19,19 @@ Both models were trained on 2000 games played on lichess.org in June 2018, 200 g
 #### Single Output model
 For the single output model Mean Squared Error was used as the loss function.
 
-
-![loss plot](models/loss_plots/singe_output_model.png "training loss Single output model")
+<p align="center">
+  <img src="models/loss_plots/singe_output_model.png" alt="training loss single output model">
+</p>
 
 #### Rating Ranges model
 For the rating ranges model Cross Validation was used as the loss function. The problem is not exactly a classification problem because the weighted averages are used in the end for the elo prediction but it was the best I could find.
 
 
-![loss plot](models/loss_plots/rating_ranges_model.png "training loss Rating ranges model")
+<p align="center">
+  <img src="models/loss_plots/rating_ranges_model.png" alt="training loss rating ranges model">
+</p>
+
+
 It is important to note that a random classification model with 10 classes would have an average Cross Validation loss of `-ln(1/10) = 2.303`. That means the rating ranges model is a bit better than a random one.
 
 
