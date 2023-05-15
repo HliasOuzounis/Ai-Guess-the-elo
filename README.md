@@ -8,7 +8,7 @@ All the effort on the project is condensed into a single file. You can run the `
 ## The Backbone
 The project uses LSTM models from the [PyTorch](https://pytorch.org) libray to make the elo predictions. The models are fed games analyzed by stockfish and the [python-chess](https://python-chess.readthedocs.io/en/latest/#) library.
 
-LSTM models were used, firstly as a learning experience, and secondly because their "memory" feature I thought closely resembles how a human would analyze a game. For more explanattions behind the decisions made read the [Decisions Explained](models/Decisions_explained.md) file. 
+LSTM models were used, firstly as a learning experience, and secondly because their "memory" feature I thought closely resembles how a human would analyze a game. For more explanations behind the decisions made read the [Decisions Explained](models/Decisions_explained.md) file. 
 
 For the training data, games from all elo ranges from the [open liches database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the proccess of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
@@ -67,21 +67,47 @@ These results can be found in their respective jupyter notebooks.
 
 
 ## Usage
-To get elo predictions for your chess games clone this reporitory
+To get elo predictions for your chess games clone this reporitory after you have installed the necessary python libraries
 ```
+pip install torch tqdm python-chess
 git clone https://github.com/HliasOuzounis/Ai-Guess-the-elo
 ```
 and run the `guess_the_elo.py` file with python
 ```
 python guess_the_elo.py [--engine engine-dir] [-c] pgn_file
 ```
+
 Because the training dataset was from lichess.org, the model has learned to predict lichess ratings. If your game is from chess.com pass the -c flag so the elo gets converted. On average chess.com ratings are 400 points lower than lichess.org.
 
 
 Because the games need to be analyzed by an engine first, you need to have a chess engine installed, preferably [stockfish](https://stockfishchess.org/download/). Pass the path as the --engine argument when calling the file. On linux you can find the installed path of stockfish with `which stockfish`. On my arch-based distro that was `/usr/bin/stockfish` which I have used as the default.
 
 
-Finally, pass the .pgn file which contains the game as the last argument. 
+Finally, pass the pgn file which contains the game as the last argument. It need to be parsable by chess.pgn.read_game.
+If you copy the pgn from the website's "share" feature onto a plain text file it should be good enough.
 
+### Examples
+
+Feeding the models [one of my games](https://lichess.org/bNLqqjHP/black#74) 
+<iframe src="https://lichess.org/embed/game/bNLqqjHP?theme=auto&bg=auto#74"
+width=600 height=397 frameborder=0></iframe>
+```
+python guess_the_elo.py my_game.pgn
+```
+I get a prediction of: 
+- 2193 for myself (black) and 2145 for my opponent on the first model
+- 2046 for myself and 2200 for my opponent
+My true Lichess rating is around 2000 so that was a succesful guess.
+
+For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions are not as accurate.
+<iframe src="https://lichess.org/embed/game/BoxuoUjy?theme=auto&bg=auto#123"
+width=600 height=397 frameborder=0></iframe>
+
+- 1833 for white and 1172 for black on the first model
+- 1442 for white and 1502 for black on the second model
+
+
+It also seems that the models don't always agree who played better between the two players.
 
 ## Conclusions
+Chess is a very complex game, who would have thought! It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small and the models not deep enough to truly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. But, it's safe to say that an experienced chess player would propably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
