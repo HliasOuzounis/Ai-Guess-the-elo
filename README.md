@@ -88,20 +88,25 @@ If you copy the pgn from the website's "share" feature onto a plain text file it
 
 ### Examples
 
-Feeding the models [one of my games](https://lichess.org/bNLqqjHP/black#74) 
-<iframe src="https://lichess.org/embed/game/bNLqqjHP?theme=auto&bg=auto#74"
-width=600 height=397 frameborder=0></iframe>
+Feeding the models [one of my games](https://lichess.org/bNLqqjHP/black#0)
+<p align="center">
+  <img src="datasets/my_game1.png" alt="game1">
+</p>
+
 ```
 python guess_the_elo.py my_game.pgn
 ```
 I get a prediction of: 
 - 2193 for myself (black) and 2145 for my opponent on the first model
-- 2046 for myself and 2200 for my opponent
+- 2046 for myself and 2200 for my opponent on the second model
+
+
 My true Lichess rating is around 2000 so that was a succesful guess.
 
 For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions are not as accurate.
-<iframe src="https://lichess.org/embed/game/BoxuoUjy?theme=auto&bg=auto#123"
-width=600 height=397 frameborder=0></iframe>
+<p align="center">
+  <img src="datasets/my_game2.png" alt="game2">
+</p>
 
 - 1833 for white and 1172 for black on the first model
 - 1442 for white and 1502 for black on the second model
