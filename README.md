@@ -1,9 +1,9 @@
 # ELO-Guesser
-An attempt at creating a neural network to guess a player's ELO based on their chess games/moves.
+An attempt at creating a neural network to guess a player's ELO rating based on their chess games/moves.
 
 I had this idea in mind before chess.com released their version of an elo guessing ai but I postponed it long enough that they beat me to it. I was inpired by [Gothamchess' Guess the Elo series](https://www.youtube.com/watch?v=0baCL9wwJTA&list=PLBRObSmbZluRiGDWMKtOTJiLy3q0zIfd7).
 
-All the effort on the project is condensed into a single file. You can run the `guess_the_elo` file with a pgn file as an argument. It will analyze the game, load the ai models and make a rating prediction for white and for black. For more info check [Usage instructions](#Usage).
+All the effort on the project is condensed into a single file. You can run the `guess_the_elo.py` file with a pgn file as an argument. It will analyze the game, load the ai models and make a rating prediction for white and for black. For more info check [Usage instructions](#Usage).
 
 ## The Backbone
 The project uses LSTM models from the [PyTorch](https://pytorch.org) libray to make the elo predictions. The models are fed games analyzed by stockfish and the [python-chess](https://python-chess.readthedocs.io/en/latest/#) library.
@@ -114,5 +114,11 @@ For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions are not 
 
 It also seems that the models don't always agree who played better between the two players.
 
+It's difficult to grade the models on single games. Perhaps I did play poorly for my level and a 1500 or even a 1100 rating is justified.
+
 ## Conclusions
-Chess is a very complex game, who would have thought! It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small and the models not deep enough to truly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. But, it's safe to say that an experienced chess player would propably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
+Wow, chess is a very complex game, who would have thought! 
+
+It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small and the models not deep enough to truly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. 
+
+But, it's safe to say that an experienced chess player would propably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
