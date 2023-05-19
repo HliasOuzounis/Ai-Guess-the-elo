@@ -1,4 +1,4 @@
-# ELO-Guesser
+# Ai-Guess-the-Elo
 An attempt at creating a neural network to guess a player's ELO rating based on their chess games/moves.
 
 I had this idea in mind before chess.com released their version of an elo guessing ai but I postponed it long enough that they beat me to it. I was inpired by [Gothamchess' Guess the Elo series](https://www.youtube.com/watch?v=0baCL9wwJTA&list=PLBRObSmbZluRiGDWMKtOTJiLy3q0zIfd7).
