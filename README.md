@@ -72,6 +72,9 @@ To get elo predictions for your chess games clone this reporitory after you have
 pip install torch tqdm python-chess
 git clone https://github.com/HliasOuzounis/Ai-Guess-the-elo
 ```
+or download the files from the release pahe, 
+
+
 and run the `guess_the_elo.py` file with python
 ```
 python guess_the_elo.py [--engine engine-dir] [-c] pgn_file
