@@ -13,7 +13,7 @@ LSTM models were used, firstly as a learning experience, and secondly because th
 For the training data, games from all elo ranges from the [open liches database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the proccess of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
 ## Results
-The two models trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file, were the single output elo prediction and the rating ranges precition. To summarize, the single output model predictis an elo rating while the rating ranges model predicts the propability of the elo being in one of 10 rating ranges. Then tales the weighted average of those propabilities for the elo prediction.  
+The two models trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file, were the single output elo prediction and the rating ranges precition. To summarize, the single output model predictis an elo rating while the rating ranges model predicts the propability of the elo being in one of 10 rating ranges. Then takes the weighted average of those propabilities for the elo prediction.  
 ### Training
 Both models were trained on 2000 games played on lichess.org in June 2018, 200 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. They were trained for 10 epochs, enough to decrease the loss while also avoiding overfitting.
 #### Single Output model
