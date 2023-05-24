@@ -3,7 +3,7 @@
 :--quiet
 :-Wuci
 
-:--stopafter 1000
+:--stopafter 10000
 
 :--nobadresults
 :--detag Site
@@ -22,6 +22,6 @@
 :--detag WhiteTitle
 :--detag BlackTitle
 
-% :-t
-% WhiteElo >= "900"
-% BlackElo < "1100"
+:-t
+WhiteElo <= "3000" 
+BlackElo >= "2600"
