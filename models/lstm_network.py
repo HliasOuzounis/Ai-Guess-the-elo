@@ -52,10 +52,9 @@ class LSTM(nn.Module):
         return out, (hn, cn)
 
 
-def initialize_model(input_size, hidden_size, num_layers, device, num_classes=1):
+def initialize_model(input_size, hidden_size, num_layers, device, learning_rate, num_classes=1):
     lstm_model = LSTM(input_size, hidden_size, num_layers, device, num_classes)
 
-    learning_rate = 0.01
     optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
 
     return lstm_model, optimizer
@@ -91,7 +90,6 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
     
     for epoch in range(num_epochs):
         for _batch, (x_game, y_game) in enumerate(zip(x_train, y_train)):
-
             # Reset the hidden and cell states
             cell_states = torch.zeros(model.num_layers, batch_size, model.hidden_size).to(model.device)
             hidden_states = torch.zeros(model.num_layers, batch_size, model.hidden_size).to(model.device)
