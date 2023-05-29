@@ -72,7 +72,7 @@ The results for this model are similar. Above a 50% accuracy and less than 250 e
   <img src="models/loss_plots/rating_ranges_boards_mirrors_predictions.png" alt="predictions rating ranges model">
 </p>
 
-Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly.
+Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles oredicting low elo games. For games <1000 elo, the model tends to overestimate the player. The tradeoff is a good modeling of the middle of the rating ladder.
 
 
 These results can be found in their respective jupyter notebooks.
@@ -113,13 +113,15 @@ python guess_the_elo.py my_game.pgn
   <img src="datasets/my_game2.png" alt="game2">
 </p>
 I get predictions:
+
+
 - 1896 for myself (black) and 2091 for my opponent on the first model
 - 1976 for myself and 2067 for my opponent on the second model
 
 Considering I'm around 2000 rated on Lichess, those predictions are pretty good
 
-For [other games](https://lichess.org/bNLqqjHP/black#0) 
-<p align="center"> the predictions don't line up in both models.
+For [other games](https://lichess.org/bNLqqjHP/black#0) the predictions don't line up in both models.
+<p align="center"> 
   <img src="datasets/my_game1.png" alt="game1">
 </p>
 
@@ -130,7 +132,7 @@ We see that the second model underestimated me and my opponent while the first m
 
 We should keep in mind that guessing a player's rating off of a single game is not a very good metric since players can have good or bad games. 
 
-Additionally, a player can't show his full level if their opponent plays badly and hands him the win. That means a player's elo prediction is indirectly  affevted by his opponent. (though the models judge a player on his moves alone, the positions that arise, which are determined by both players are also taken into account.)
+Additionally, a player can't show his full level if their opponent plays badly and hands him the win. That means a player's elo prediction is indirectly  affected by his opponent. (though the models judge a player solely on his moves, the positions that arise, which are determined by both players are also taken into account)
 
 Also, those ratings depend a lot on the stockfish evaluation of each game which isn't totally consistent even when analyzing the same game. This variance is not very big though.
 
