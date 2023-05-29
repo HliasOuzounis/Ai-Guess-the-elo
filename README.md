@@ -76,7 +76,9 @@ The results for this model are similar. Above a 50% accuracy and less than 250 e
   <img src="models/loss_plots/rating_ranges_boards_mirrors_predictions.png" alt="predictions rating ranges model">
 </p>
 
-Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games. For games <1000 elo, the model tends to overestimate the player. The tradeoff is a good modeling of the middle of the rating ladder.
+Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
+
+So, for predictions around the middle of the rating ladder, the second model seems better while on the two ends the first one is superior.
 
 
 These results can be found in their respective jupyter notebooks.
