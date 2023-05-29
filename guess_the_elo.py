@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import chess.engine
 import chess.pgn
@@ -70,6 +71,8 @@ def main():
     if game is None:
         raise Exception("Not a valid pgn file")
 
+    if not os.path.isfile(engine_path):
+        raise Exception("Could not find engine")
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
