@@ -13,9 +13,13 @@ LSTM models were used, firstly as a learning experience, and secondly because th
 For the training data, games from all elo ranges from the [open liches database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the proccess of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
 ## Results
-The two models trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file, were the single output elo prediction and the rating ranges precition. To summarize, the single output model predictis an elo rating while the rating ranges model predicts the propability of the elo being in one of 10 rating ranges. Then takes the weighted average of those propabilities for the elo prediction.  
+The two models trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file, were the single output elo prediction and the rating ranges precition. To summarize, the single output model predictis an elo rating while the rating ranges model predicts the propability of the elo being in one of 10 rating ranges.
+```
+<1000, 1000-1200, 1200-1400, 1400-1600, 1600-1800, 1800-2000, 2000-2200, 2200-2400, 2400-2600, >2600
+```
+Then takes the weighted average of those propabilities for the elo prediction.  
 ### Training
-Both models were trained on 20000 games played on lichess.org in June 2018, 2000 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. They were trained for 7-10 epochs, enough to decrease the loss while also avoiding overfitting.
+Both models were trained on 20000 games played on lichess.org in June 2018, 2000 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. They were trained for 5-10 epochs, enough to decrease the loss while also avoiding overfitting.
 #### Single Output model
 For the single output model Mean Squared Error was used as the loss function.
 
@@ -32,7 +36,7 @@ For the rating ranges model Cross Validation was used as the loss function. The 
 </p>
 
 
-It is important to note that a random classification model with 10 classes would have an average Cross Validation loss of `-ln(1/10) = 2.303`. That means the rating ranges model is much better than a random one.
+It is important to note that a random classification model with 10 classes would have an average Cross Validation loss of `-ln(1/10) = 2.303`. That means the rating ranges model is better than a random one.
 
 
 We can clearly see a downwards trend for both models that plateaus. We have reached a stagnation in traing while avoiding overfitting.
@@ -66,13 +70,13 @@ Taking variance in the level of play into account, I would say this model is pre
 #### Rating Ranges model
 
 
-The results for this model are similar. Above a 50% accuracy and less than 250 elo average difference. Using it as purely a classification model, it guesses the correct range of the player around 30% of the time.
+The results for this model are similar. Above a 50% accuracy and less than 250 elo average difference with 90% of predictions within 500 points of the true values. Using it as purely a classification model, it guesses the correct range of the player around 30% of the time.
 
 <p align="center">
   <img src="models/loss_plots/rating_ranges_boards_mirrors_predictions.png" alt="predictions rating ranges model">
 </p>
 
-Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles oredicting low elo games. For games <1000 elo, the model tends to overestimate the player. The tradeoff is a good modeling of the middle of the rating ladder.
+Ploting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games. For games <1000 elo, the model tends to overestimate the player. The tradeoff is a good modeling of the middle of the rating ladder.
 
 
 These results can be found in their respective jupyter notebooks.
@@ -139,6 +143,6 @@ Also, those ratings depend a lot on the stockfish evaluation of each game which 
 ## Conclusions
 Wow, chess is a very complex game, who would have thought! 
 
-It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small and the models not deep enough to truly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
+It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small considering the amount of ches games and the models not deep enough to perfectly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
 
-But, it's safe to say that an experienced chess player/coach would propably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
+But it's safe to say that an experienced chess player/coach would propably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
