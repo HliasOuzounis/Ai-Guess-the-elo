@@ -4,7 +4,7 @@ import chess.engine
 from tqdm import tqdm
 
 def fen_to_bitboard(fen_str):
-    mapings = {
+    mappings = {
         "P": 0, "N": 1, "B": 2, "R": 3, "Q": 4, "K": 5,
         "p": 6, "n": 7, "b": 8, "r": 9, "q": 10, "k": 11
     }   
@@ -19,7 +19,7 @@ def fen_to_bitboard(fen_str):
         elif char.isdigit():
             col += int(char)
         else:
-            bitboard[mapings[char], row * 8 + col] = 1
+            bitboard[mappings[char], row * 8 + col] = 1
             col += 1
     # Flatten the bitboard and add whose move it is
     return torch.cat((torch.tensor([1 if move == "w" else -1]), bitboard.flatten()))
@@ -36,7 +36,7 @@ def analyze_game(game, engine, mate_score, nof_moves=10):
     # for i, move in enumerate(game.mainline_moves()):
     for i in tqdm(range(len(moves)), desc="Analyzing game"):
         move = moves[i]
-        # Enfine evaluation before the move
+        # Engine evaluation before the move
         top_moves = engine.analyse(board, chess.engine.Limit(time=0.1), multipv=nof_moves)
         # A tensor with the score of the top nof_moves moves (normalized to be between -1 and 1)
         top_moves_tensor = torch.Tensor([eval["score"].relative.score(mate_score=mate_score) for eval in top_moves]) 
@@ -50,7 +50,6 @@ def analyze_game(game, engine, mate_score, nof_moves=10):
             before_wdl.losing_chance()
         ])
         board.push(move)
-        
         # Engine evaluation after the move
         after_move = engine.analyse(board, chess.engine.Limit(time=0.1))
         # Now it's the opponent's turn so negate the score
@@ -102,7 +101,7 @@ def fen_to_bitboard(fen_str):
     bitboard = torch.zeros(12, 64)
     fen, move, _castle, _en_passant, _halfmove, _fullmove = fen_str.split(" ")
     
-    mapings = {
+    mappings = {
         "P": 0, "N": 1, "B": 2, "R": 3, "Q": 4, "K": 5,
         "p": 6, "n": 7, "b": 8, "r": 9, "q": 10, "k": 11,
     }
@@ -115,7 +114,7 @@ def fen_to_bitboard(fen_str):
         elif char.isdigit():
             col += int(char)
         else:
-            bitboard[mapings[char], row * 8 + col] = 1
+            bitboard[mappings[char], row * 8 + col] = 1
             col += 1
     # Flatten the bitboard and add whose move it is
     return torch.cat((torch.tensor([1 if move == "w" else -1]), bitboard.flatten()))
@@ -124,7 +123,7 @@ def fen_to_bitboard_mirror(fen_str):
     bitboard = torch.zeros(12, 64)
     fen, move, _castle, _en_passant, _halfmove, _fullmove = fen_str.split(" ")
     
-    mapings = {
+    mappings = {
         "P": 0, "N": 1, "B": 2, "R": 3, "Q": 4, "K": 5,
         "p": 6, "n": 7, "b": 8, "r": 9, "q": 10, "k": 11,
     }   if move == "w" else {
@@ -140,7 +139,7 @@ def fen_to_bitboard_mirror(fen_str):
         elif char.isdigit():
             col += int(char)
         else:
-            bitboard[mapings[char], row * 8 + col] = 1
+            bitboard[mappings[char], row * 8 + col] = 1
             col += 1
     # Flatten the bitboard and add whose move it is
     return torch.cat((torch.tensor([1 if move == "w" else -1]), bitboard.flatten()))
@@ -149,7 +148,7 @@ def fen_to_board(fen_str):
     board = torch.zeros(8, 8)
     fen, move, _castle, _en_passant, _halfmove, _fullmove = fen_str.split(" ")
     normalizer = 20
-    mapings = {
+    mappings = {
         "P": 1, "N": 3, "B": 3.5, "R": 5, "Q": 9, "K": 20,
         "p": -1, "n": -3, "b": -3.5, "r": -5, "q": -9, "k": -20,
     } 
@@ -161,7 +160,7 @@ def fen_to_board(fen_str):
         elif char.isdigit():
             col += int(char)
         else:
-            board[row, col] = mapings[char] / normalizer
+            board[row, col] = mappings[char] / normalizer
             col += 1
     return torch.cat((torch.tensor([1 if move == "w" else -1]), board.flatten())) 
 
@@ -169,7 +168,7 @@ def fen_to_board_mirror(fen_str):
     board = torch.zeros(8, 8)
     fen, move, _castle, _en_passant, _halfmove, _fullmove = fen_str.split(" ")
     normalizer = 20
-    mapings = {
+    mappings = {
         "P": 1, "N": 3, "B": 3.5, "R": 5, "Q": 9, "K": 20,
         "p": -1, "n": -3, "b": -3.5, "r": -5, "q": -9, "k": -20,
     } if move == "w" else {
@@ -185,6 +184,6 @@ def fen_to_board_mirror(fen_str):
         elif char.isdigit():
             col += int(char)
         else:
-            board[row, col] = mapings[char] / normalizer
+            board[row, col] = mappings[char] / normalizer
             col += 1
     return torch.cat((torch.tensor([1 if move == "w" else -1]), board.flatten())) 

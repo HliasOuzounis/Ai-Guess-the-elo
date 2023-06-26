@@ -76,7 +76,6 @@ def main():
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    device = torch.device("cpu")
 
     position = convert_position(game, func=position_converters[position_type])
     analysis = analyze_game(game, engine, mate_score).to(device)
