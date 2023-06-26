@@ -77,7 +77,7 @@ def main():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    position = convert_position(game, func=position_converters[position_type])
+    position = convert_position(game, func=position_converters[position_type]).to(device)
     analysis = analyze_game(game, engine, mate_score).to(device)
     model_input = torch.cat((position, analysis), dim=-1)
 
