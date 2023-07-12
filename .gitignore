@@ -1,4 +1,3 @@
-lstm_test.py
 __pycache__
 **.pgn
 datasets/*/*.pt
