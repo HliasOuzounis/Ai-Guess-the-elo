@@ -64,7 +64,7 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
     # train_data is of the form [X_train, y_train]
     x_train, y_train = train_data
     
-    # x_train is a list of games, where each game is a tensor of the form.
+    # x_train is a list of games, where each game is a tensor
     # Both perspectives, white and black are batched together
     # x_train.shape = (batch_size, num_moves, input_size)
     

@@ -8,8 +8,12 @@ rating_ranges = torch.stack([
     torch.Tensor((low, high)) for low, high in zip(range(start, end - step, step), range(start + step, end, step))
 ])
 
+def get_rating_ranges():
+    return rating_ranges
 
 def calculate_elo_range(true_elo):
+    if true_elo.ndim == 1:
+        true_elo = true_elo.view(-1, 1)
     stdev = 200
     norm_distribution = torch.distributions.Normal(true_elo, stdev)
     return norm_distribution.cdf(rating_ranges[:, 1]) - norm_distribution.cdf(rating_ranges[:, 0])
@@ -31,3 +35,8 @@ def guess_elo_from_range(probability_ranges):
     x = (0.5 - cum_probs[:, mean_index-1]) / probability_ranges[:, mean_index]
     # Adding the percentage of the range to the lower bound we get the value where cum_prob = 0.5
     return (rating_ranges[mean_index, 0] + x*step).diag().view(-1, 1)
+
+
+if __name__ == "__main__":
+    test = torch.Tensor([1000, 2000])
+    print(calculate_elo_range(test))

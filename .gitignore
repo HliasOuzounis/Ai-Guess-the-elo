@@ -5,3 +5,4 @@ datasets/*/*.pt
 *.pdf
 *.zip
 /.vscode
+temp
