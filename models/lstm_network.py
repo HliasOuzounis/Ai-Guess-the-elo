@@ -123,7 +123,7 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
 def main():
     # For the input we pass a bitboard representation of the position,
     # That means a 8 x 8 matrix with 12 values for each square, one for each piece and color
-    # Plus 1 to show whos turn it is to move
+    # Plus 1 to show whose turn it is to move
     # Plus 2 for the stockfish evaluations before and after the move
     # The hope is that the LSTM can analyze the position and calculate a "complexity" score
     # and using the stockfish evaluation, compare how worse the human move is to the computer move.
