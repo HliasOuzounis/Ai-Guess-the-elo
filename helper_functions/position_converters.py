@@ -1,5 +1,19 @@
 import torch
 
+def convert_positions_to_tensors(dataset, func):
+    positions = []
+    elo = []
+    
+    for rating_range, games in dataset.items():
+        for game in games:
+            position_tensor, elo_tensor = convert_position(game, func)
+            positions.append(position_tensor)
+            elo.append(elo_tensor)
+            
+        print(f"{rating_range} done")
+        
+    return positions, elo
+
 def convert_position(game, func):
     board = game.board()
     positions = []
@@ -12,11 +26,13 @@ def convert_position(game, func):
     # Pad the game if it ends on white's turn to batch white's and black's analysis together later
     if len(positions) % 2:
         positions.append(torch.zeros_like(positions[0]))
-    
     white_positions = torch.stack([position for position in positions[::2]])
     black_positions = torch.stack([position for position in positions[1::2]])
     
-    return torch.stack((white_positions, black_positions))
+    white_elo = int(game.headers["WhiteElo"])
+    black_elo = int(game.headers["BlackElo"])
+    
+    return torch.stack((white_positions, black_positions)), torch.Tensor([white_elo, black_elo])
 
 def fen_to_bitboard(fen_str):
     bitboard = torch.zeros(12, 64)
@@ -37,8 +53,7 @@ def fen_to_bitboard(fen_str):
         else:
             bitboard[mappings[char], row * 8 + col] = 1
             col += 1
-    # Flatten the bitboard and add whose move it is
-    return torch.cat((torch.tensor([1 if move == "w" else -1]), bitboard.flatten()))
+    return bitboard
 
 def fen_to_bitboard_mirror(fen_str):
     bitboard = torch.zeros(12, 64)
@@ -62,8 +77,7 @@ def fen_to_bitboard_mirror(fen_str):
         else:
             bitboard[mappings[char], row * 8 + col] = 1
             col += 1
-    # Flatten the bitboard and add whose move it is
-    return torch.cat((torch.tensor([1 if move == "w" else -1]), bitboard.flatten()))
+    return bitboard
 
 def fen_to_board(fen_str):
     board = torch.zeros(8, 8)
@@ -83,7 +97,7 @@ def fen_to_board(fen_str):
         else:
             board[row, col] = mappings[char] / normalizer
             col += 1
-    return torch.cat((torch.tensor([1 if move == "w" else -1]), board.flatten())) 
+    return board
 
 def fen_to_board_mirror(fen_str):
     board = torch.zeros(8, 8)
@@ -107,12 +121,69 @@ def fen_to_board_mirror(fen_str):
         else:
             board[row, col] = mappings[char] / normalizer
             col += 1
-    return torch.cat((torch.tensor([1 if move == "w" else -1]), board.flatten())) 
+            
+    return board
 
 
-position_converters = {
-    "bitboards": fen_to_bitboard,
-    "bitboards_mirrors": fen_to_bitboard_mirror,
-    "boards": fen_to_board,
-    "boards_mirrors": fen_to_board_mirror,
-}
+if __name__ == "__main__":
+    from elo_guesser.helper_functions.elo_range import get_rating_ranges
+    import chess.pgn
+    rating_ranges = get_rating_ranges()[3:-3].tolist()
+    rating_ranges = tuple(map(tuple, rating_ranges))
+    
+    chess_games = {rating: [] for rating in rating_ranges}
+    min_elo = 9999
+    max_elo = 0
+
+    games_per_rating = 1
+    start_index = 0
+
+    for rating_range in rating_ranges:
+        start = start_index
+        lower_bound = rating_range[0]
+        upper_bound = rating_range[1]
+        
+        file = f"../datasets/outputs/{str(lower_bound)}-{str(upper_bound)}.pgn"
+
+
+        with open(file) as f:
+            while len(chess_games[rating_range]) < games_per_rating:
+                game = chess.pgn.read_game(f)
+                if game is None:
+                    break
+                if any(time_control in game.headers["Event"] for time_control in [
+                    "Correspondence", "Daily", "Classical", "Bullet", "UltraBullet"
+                ]):
+                    continue
+                if game.headers["WhiteElo"] == "?" or game.headers["BlackElo"] == "?":
+                    continue
+                if (
+                    not lower_bound <= int(game.headers["WhiteElo"]) <= upper_bound
+                    and not lower_bound <= int(game.headers["BlackElo"]) <= upper_bound
+                ):
+                    continue
+                if not game.mainline_moves():
+                    continue
+                if len(list(game.mainline_moves())) < 15:
+                    continue
+                if start > 0:
+                    start -= 1
+                    continue
+                
+                chess_games[rating_range].append(game)
+                
+                min_elo = min(min_elo, int(game.headers["WhiteElo"]), int(game.headers["BlackElo"]))
+                max_elo = max(max_elo, int(game.headers["WhiteElo"]), int(game.headers["BlackElo"]))
+                
+    position_converter_types = {
+        "bitboards": fen_to_bitboard,
+        "bitboards_mirrors": fen_to_bitboard_mirror,
+        "boards": fen_to_board,
+        "boards_mirrors": fen_to_board_mirror,
+    }
+    position_type = "boards_mirrors"
+
+    positions, elo = convert_positions_to_tensors(chess_games, position_converter_types[position_type])
+    
+    print(len(positions))
+    print(positions[0].shape)

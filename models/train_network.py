@@ -14,7 +14,7 @@ def train(model, x_train, y_train, optimizer, loss_func, num_epochs=10, validati
 
     for epoch in range(num_epochs):
         for _batch, (x, y) in enumerate(zip(x_train, y_train)):
-            prediction = model.train(x)
+            prediction, (_h, _c) = model.train()(x)
             loss = loss_func(prediction, y)
 
             optimizer.zero_grad()
@@ -22,8 +22,10 @@ def train(model, x_train, y_train, optimizer, loss_func, num_epochs=10, validati
             optimizer.step()
 
         # validation loss
-        loss_sum = sum(loss_func(model(x, y).item())
+        loss_sum = sum(loss_func(model(x)[0], y).item()
                        for x, y, in zip(x_val, y_val))
 
         loss_graph.append(loss_sum/validation_games)
         print(f"Epoch: {epoch + 1}, Validation Loss: {loss_graph[-1]}")
+    
+    return loss_graph

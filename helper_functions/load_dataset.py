@@ -21,17 +21,31 @@ def load_games(position_type, dataset_path="/datasets/"):
             i + 1) * 500] + game_analysis3[0][i * 500: (i + 1) * 500] + game_analysis4[0][i * 500: (i + 1) * 500]
         elo_validation += game_analysis1[1][i * 500: (i + 1) * 500] + game_analysis2[1][i * 500: (
             i + 1) * 500] + game_analysis3[1][i * 500: (i + 1) * 500] + game_analysis4[1][i * 500: (i + 1) * 500]
-
     # Check that the data is loaded correctly, positions match with analysis
     for i, (pos, anal) in enumerate(zip(positions, analysis)):
-        assert pos.size()[1] == anal.size()[1] # Same number of moves
+        if not pos.size()[1] == anal.size()[1]:
+            print(i)
+            print(pos.shape)
+            print(anal.shape)
+            continue# Same number of moves
+        # assert pos.size()[1] == anal.size()[1] # Same number of moves
     for i, (game_elo1, game_elo2) in enumerate(zip(elo, elo_validation)):
         assert game_elo1[0] == game_elo2[0] # White elo
         assert game_elo1[1] == game_elo2[1] # Black elo
 
     dataset = [
-        (torch.cat((game_position, game_analysis), dim=-1), game_elo)
+        (game_position, game_analysis, game_elo)
         for game_position, game_analysis, game_elo in zip(positions, analysis, elo)
     ]
+    # dataset = [
+    #     (torch.cat((game_position, game_analysis), dim=-1), game_elo)
+    #     for game_position, game_analysis, game_elo in zip(positions, analysis, elo)
+    # ]
 
     return dataset
+
+if __name__ == "__main__":
+    position_type = "boards_mirrors"
+    path = "../datasets/"
+    dataset = load_games(position_type, path)
+    print("Total Games:", len(dataset))

@@ -8,7 +8,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 rating_ranges = torch.stack([
     torch.Tensor((low, high)) for low, high in zip(range(start, end - step, step), range(start + step, end, step))
-]).to(device)
+]).int().to(device)
 
 def get_rating_ranges():
     return rating_ranges
