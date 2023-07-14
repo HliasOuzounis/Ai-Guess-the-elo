@@ -24,11 +24,11 @@ class LSTM(nn.Module):
             
         self.to(device)
 
-    def forward(self, X, h0=None, c0=None, train=True):
+    def forward(self, X, h0=None, c0=None, train=False):
         # If X is a single sample, add a batch dimension
         if X.dim() == 2:
             X = X.unsqueeze(0)
-            
+        print(X.shape)
         if c0 is None:
             c0 = torch.zeros(self.num_layers, X.size(0), self.hidden_size).to(self.device)
         if h0 is None:
@@ -95,7 +95,7 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
             
             # get output prediction
             prediction, (_hidden_states, _cell_states) = model(
-                x_game, hidden_states, cell_states
+                x_game, hidden_states, cell_states, train=True
             )
             # calculate loss and optimize
             loss = loss_func(prediction, y_game)
@@ -109,7 +109,7 @@ def train_model(model, optimizer, loss_func, train_data, num_epochs):
         cell_states = torch.zeros(model.num_layers, batch_size, model.hidden_size).to(model.device)
         hidden_states = torch.zeros(model.num_layers, batch_size, model.hidden_size).to(model.device)
         loss_sum = sum(
-            loss_func(model(x_val[i], cell_states, hidden_states)[0], y_val[i]).item()
+            loss_func(model(x_val[i], cell_states, hidden_states, train=True)[0], y_val[i]).item()
             for i in range(validation_games)
         )
 
@@ -138,7 +138,13 @@ def main():
     num_classes = 10
     # Or a single value for the players ELO
     num_classes = 1
-    
-    lstm, optimizer = initialize_model(input_size, hidden_size, num_layers, num_classes)
-    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    lstm, optimizer = initialize_model(input_size, hidden_size, num_layers, device = device, learning_rate=0.001, num_classes=num_classes)
+    inp = torch.randn(2, 1, input_size).to(device)
+    out, _ = lstm.eval()(inp)
+    print(out.shape)
     return lstm, optimizer, 
+
+
+if __name__ == "__main__":
+    main()

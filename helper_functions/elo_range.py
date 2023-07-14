@@ -1,12 +1,14 @@
 import torch
 
-start = 400
+start = 200
 end = 3600
 step = 200
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 rating_ranges = torch.stack([
     torch.Tensor((low, high)) for low, high in zip(range(start, end - step, step), range(start + step, end, step))
-])
+]).to(device)
 
 def get_rating_ranges():
     return rating_ranges
@@ -14,6 +16,8 @@ def get_rating_ranges():
 def calculate_elo_range(true_elo):
     if true_elo.ndim == 1:
         true_elo = true_elo.view(-1, 1)
+    if true_elo.device != device:
+        true_elo = true_elo.to(device)
     stdev = 200
     norm_distribution = torch.distributions.Normal(true_elo, stdev)
     return norm_distribution.cdf(rating_ranges[:, 1]) - norm_distribution.cdf(rating_ranges[:, 0])
@@ -38,5 +42,6 @@ def guess_elo_from_range(probability_ranges):
 
 
 if __name__ == "__main__":
-    test = torch.Tensor([1000, 2000])
-    print(calculate_elo_range(test))
+    test = torch.Tensor([1000, 2150])
+    predictions = calculate_elo_range(test)
+    print(guess_elo_from_range(predictions))

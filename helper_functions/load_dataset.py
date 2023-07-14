@@ -1,9 +1,7 @@
 import torch
 
 
-def load_games(position_type):
-    dataset_path = f"datasets/"
-
+def load_games(position_type, dataset_path="/datasets/"):
     positions, elo = torch.load(
         dataset_path + f"positions/all_{position_type}_0-2000.pt")
 

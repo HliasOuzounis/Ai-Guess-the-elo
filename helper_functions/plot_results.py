@@ -9,7 +9,7 @@ def plot_loss(loss_graph):
     plt.title("Training loss plot: Rating Ranges model")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    # With 10 classes a random model would have -log(1/10) = 2.3 loss
+    # With 15 classes a random model would have -log(1/15) = 2.7 loss
     plt.savefig("temp/loss_plot.png")
 
 
@@ -20,13 +20,11 @@ def get_cutoff_value(tensor, percentage):
 
 
 def compare_results(predictions, y_test):
-    predictions = torch.cat(predictions).view(-1)
-    y_test = torch.cat(y_test).view(-1)
-
-    differences = torch.abs(predictions - y_test)
-    fiftieth_percentile = get_cutoff_value(differences, 0.5)
+    error = torch.abs(predictions - y_test)
+    print(f"Mean error: {error.mean()}")
+    fiftieth_percentile = get_cutoff_value(error, 0.5)
     print(f"50th percentile: {fiftieth_percentile}")
-    ninetieth_percentile = get_cutoff_value(differences, 0.9)
+    ninetieth_percentile = get_cutoff_value(error, 0.9)
     print(f"90th percentile: {ninetieth_percentile}")
 
     plot_predictions(predictions, y_test, fiftieth_percentile,
