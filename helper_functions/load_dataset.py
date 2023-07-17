@@ -23,12 +23,7 @@ def load_games(position_type, dataset_path="/datasets/"):
             i + 1) * 500] + game_analysis3[1][i * 500: (i + 1) * 500] + game_analysis4[1][i * 500: (i + 1) * 500]
     # Check that the data is loaded correctly, positions match with analysis
     for i, (pos, anal) in enumerate(zip(positions, analysis)):
-        if not pos.size()[1] == anal.size()[1]:
-            print(i)
-            print(pos.shape)
-            print(anal.shape)
-            continue# Same number of moves
-        # assert pos.size()[1] == anal.size()[1] # Same number of moves
+        assert pos.size()[-4] == anal.size()[-2] # Same number of moves
     for i, (game_elo1, game_elo2) in enumerate(zip(elo, elo_validation)):
         assert game_elo1[0] == game_elo2[0] # White elo
         assert game_elo1[1] == game_elo2[1] # Black elo

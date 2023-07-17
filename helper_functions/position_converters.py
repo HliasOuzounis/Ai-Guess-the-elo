@@ -29,6 +29,10 @@ def convert_position(game, func):
     white_positions = torch.stack([position for position in positions[::2]])
     black_positions = torch.stack([position for position in positions[1::2]])
     
+    # Encoding whose turn it is as a second channel
+    white_positions = torch.stack([white_positions, torch.ones_like(white_positions)], dim=1)
+    black_positions = torch.stack([black_positions, -torch.ones_like(black_positions)], dim=1)
+    
     white_elo = int(game.headers["WhiteElo"])
     black_elo = int(game.headers["BlackElo"])
     
@@ -65,7 +69,7 @@ def fen_to_bitboard_mirror(fen_str):
     }   if move == "w" else {
         "p": 0, "n": 1, "b": 2, "r": 3, "q": 4, "k": 5,
         "P": 6, "N": 7, "B": 8, "R": 9, "Q": 10, "K": 11,
-    } 
+    }
     fen = fen if move == "w" else fen[::-1]
     row, col = 0, 0
     for char in fen:

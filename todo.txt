@@ -1,0 +1,2 @@
+1) Add whose turn it is as a second channel in the cnn (1 for white, -1 for black)
+2) Test with multiple channels, one for each piece type

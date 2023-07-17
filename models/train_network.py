@@ -26,6 +26,6 @@ def train(model, x_train, y_train, optimizer, loss_func, num_epochs=10, validati
                        for x, y, in zip(x_val, y_val))
 
         loss_graph.append(loss_sum/validation_games)
-        print(f"Epoch: {epoch + 1}, Validation Loss: {loss_graph[-1]}")
+        print(f"Epoch: {epoch + 1}, Validation Loss: {loss_graph[-1]:.4f}")
     
     return loss_graph
