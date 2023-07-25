@@ -33,8 +33,8 @@ def convert_position(game, func):
     white_positions = torch.stack([white_positions, torch.ones_like(white_positions)], dim=1)
     black_positions = torch.stack([black_positions, -torch.ones_like(black_positions)], dim=1)
     
-    white_elo = int(game.headers["WhiteElo"])
-    black_elo = int(game.headers["BlackElo"])
+    white_elo = int(game.headers["WhiteElo"]) if "WhiteElo" in game.headers else 0
+    black_elo = int(game.headers["BlackElo"]) if "BlackElo" in game.headers else 0
     
     return torch.stack((white_positions, black_positions)), torch.Tensor([white_elo, black_elo])
 

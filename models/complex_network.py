@@ -25,7 +25,7 @@ class EloGuesser(nn.Module):
 
         self.to(device)
 
-    def forward(self, X, c0=None, h0=None):
+    def forward(self, X, h0=None, c0=None):
         position, evaluation = X
         white, black = position
         parsed_position = torch.stack(

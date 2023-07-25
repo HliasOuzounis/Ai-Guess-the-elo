@@ -7,12 +7,12 @@ def pad_tensor(tensor, length, pad_value):
     return torch.cat((tensor, torch.ones(length - len(tensor)) * pad_value))
 
 
-def analyze_game(game, engine, mate_score, nof_moves=10, time_limit=0.1, progress_bar=False):
+def analyze_game(game, engine, mate_score=1_000, nof_moves=10, time_limit=0.1, progress_bar=False):
     board = game.board()
     analysis = []
 
     moves = list(game.mainline_moves())
-    iterations = tqdm(range(len(moves)),
+    iterations = tqdm.tqdm(range(len(moves)),
                       desc="Analyzing game") if progress_bar else len(moves)
 
     for i in iterations:

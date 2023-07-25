@@ -13,7 +13,7 @@ rating_ranges = torch.stack([
 def get_rating_ranges():
     return rating_ranges
 
-def calculate_elo_range(true_elo):
+def guess_elo_from_range(true_elo):
     if true_elo.ndim == 1:
         true_elo = true_elo.view(-1, 1)
     if true_elo.device != device:
@@ -41,7 +41,11 @@ def guess_elo_from_range(probability_ranges):
     return (rating_ranges[mean_index, 0] + x*step).diag().view(-1, 1)
 
 
+def round_elo(x):
+    return 50 * torch.round(x / 50)
+
 if __name__ == "__main__":
-    test = torch.Tensor([1000, 2150])
-    predictions = calculate_elo_range(test)
+    test = torch.Tensor([600, 800, 850, 976, 2150])
+    predictions = guess_elo_from_range(test)
     print(guess_elo_from_range(predictions))
+    print(round_elo(guess_elo_from_range(predictions)))

@@ -25,10 +25,10 @@ def modify_dataset(dataset):
     test_games = int(total_games * 0.15)
 
     x_train = [game.to(device) for game, _ in dataset[:-test_games]]
-    y_train = [elo_range.calculate_elo_range(elo).to(device)
+    y_train = [elo_range.guess_elo_from_range(elo).to(device)
                for _, elo in dataset[:-test_games]]
     x_test = [game.to(device) for game, _ in dataset[-test_games:]]
-    y_test = [elo_range.calculate_elo_range(elo).to(device)
+    y_test = [elo_range.guess_elo_from_range(elo).to(device)
               for _, elo in dataset[-test_games:]]
 
     return x_train, y_train, x_test, y_test
