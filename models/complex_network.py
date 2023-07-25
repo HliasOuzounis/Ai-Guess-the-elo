@@ -25,8 +25,8 @@ class EloGuesser(nn.Module):
 
         self.to(device)
 
-    def forward(self, position, evaluation, h0=None, c0=None):
-        # position, evaluation = X
+    def forward(self, X, h0=None, c0=None):
+        position, evaluation = X
         # If the input has white and black, parse them separately
         # If it is just one of them, no need to split and join later
         if position.size(0) == 2:
