@@ -1,4 +1,6 @@
 ## Why LSTM?
+
+
 This is the major decision that everything else in the project builds on.
 
 Since the model will be used to analyze chess games with an arbitrary amount of moves we need a model that can handle sequential inputs. Unfortunately, RNNs, the simplest recurrent networks suffer a lot from the vanishing (or exploding) gradient and as such have fall victim to the long-term dependency problem. Great moves or blunders in the earlier stages of the game would have little to no impact if the game drags on.
@@ -10,10 +12,19 @@ This to me sounded a lot like how a human would approach guessing the elo of a c
 There was a thought to use transformers considering their popularity recently and the fact that they can use attention to better understand the relations between data or in this case chess moves. If trained well they could look at games not in terms of singular moves but by whole ideas and plans, looking at 5 or 6 moves at a time. Though they are computationally more expansive and need a fixed input size. But that's something to consider for a future project.
 
 
-## What's the input to the models?
-The input to the models is a 82 dimensional vector. It is composed a matrix representation of the current position and some info on the stockfish evaluation before and after the move.The board is an 8x8=64 matrix (flattened)with a value of 0 if the square is empty and a separate value if it's occupied by a piece. 1 for white pawns, 3 for white knights, 3.5 for white bishops, 5 for white rooks, 9 for white queens and 20 for the white king. Black pieces have the opposite values. -1 for pawns, -3 for knights etc. They are also normalized between -1 and 1 by diving by 20 because neural networks respond better to smaller input values.
+## What's the architecture of the network?
 
-Additionally it has a number to indicate whose turn it is 1 for white and -1 for black, the top 10 moves in the position, the winning/drawing/losing chance for the current player and the evaluation and winning/drawing/losing chance after the move was played. 
+
+As explained above, the model utilizes the LSTM architecture to handle sequential inputs and make rating predictions using information from the current and past moves. Additionally it uses a cnn layer to analyze the chess positions and after the cnn output is flattened, it is combined with the stockfish analysis and passed through a dense layer. The dense layer returns 16 outputs that get passed through a softmax layer to get the probability of each range.
+
+// Diagramm 
+
+
+
+## What's the input to the models?
+
+
+The model takes 2 inputs, a tensor with the board positions
 
 I was hoping that the models would be able to recognize the centipawn loss as the difference before and after the move was played and base their prediction on that. Also, by having the board representation they could also calculate a "complexity score" of the position. If the position was very complex, they would be more forgiving and not be too harsh on mistakes. If there was only 1 move and the player didn't play it he wouldn't be severely punished as if he played a losing move with 10 good options available.
 

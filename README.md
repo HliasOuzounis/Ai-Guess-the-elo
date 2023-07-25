@@ -3,7 +3,7 @@ An attempt at creating a neural network to guess a player's ELO rating based on 
 
 I had this idea in mind before chess.com released their version of an elo guessing ai but I postponed it long enough that they beat me to it. I was inspired by [Gothamchess' Guess the Elo series](https://www.youtube.com/watch?v=0baCL9wwJTA&list=PLBRObSmbZluRiGDWMKtOTJiLy3q0zIfd7).
 
-All the effort on the project is condensed into a single file. You can run the `guess_the_elo.py` file with a pgn file as an argument. It will analyze the game, load the ai models and make a rating prediction for white and for black. For more info check [Usage instructions](#Usage).
+All the effort on the project is condensed into a single file. You can run the `guess_the_elo.py` file with a pgn file as an argument. It will analyze the game, load the ai model and make a rating prediction for white and for black. For more info check [Usage instructions](#Usage).
 
 ## The Backbone
 The project uses LSTM models from the [PyTorch](https://pytorch.org) library to make the elo predictions. The models are fed games analyzed by stockfish and the [python-chess](https://python-chess.readthedocs.io/en/latest/#) library.
@@ -13,39 +13,33 @@ LSTM models were used, firstly as a learning experience, and secondly because th
 For the training data, games from all elo ranges from the [open lichess database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the process of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
 ## Results
-The two models trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file, were the single output elo prediction and the rating ranges prediction. To summarize, the single output model predicts an elo rating while the rating ranges model predicts the probability of the elo being in one of 10 rating ranges.
+The model trained, as explained in the [Decisions Explained](models/Decisions_explained.md) file predicts the probability of the elo being in one of 16 rating ranges.
 ```
-<1000, 1000-1200, 1200-1400, 1400-1600, 1600-1800, 1800-2000, 2000-2200, 2200-2400, 2400-2600, >2600
+<400, 400-600, 600-800, 800-1000, 1000-1200, 1200-1400, 1400-1600, 1600-1800, 1800-2000, 2000-2200, 2200-2400, 2400-2600, 2600-2800, 2800-3000, 3000-3200, 3200-3400
 ```
-Then takes the weighted average of those probabilities for the elo prediction.  
+To find the true elo of the player, it finds the mean of the normal distribution with those probabilities per range.
 ### Training
-Both models were trained on 20000 games played on lichess.org in June 2018, 2000 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. They were trained for 5-10 epochs, enough to decrease the loss while also avoiding overfitting.
-#### Single Output model
-For the single output model Mean Squared Error was used as the loss function.
-
-<p align="center">
-  <img src="models/loss_plots/single_output_loss.png" alt="training loss single output model">
-</p>
+The model was trained on 20000 games played on lichess.org in June 2018, 2000 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. It was trained for 20 epochs, enough to decrease the loss while also avoiding overfitting.
 
 #### Rating Ranges model
-For the rating ranges model Cross Validation was used as the loss function. The problem is not exactly a classification problem because the weighted averages are used in the end for the elo prediction but it was the best I could find.
+For the model Cross Validation was used as the loss function. We can think of it as a classification problem with 16 classes, the rating ranges.
 
 
 <p align="center">
-  <img src="models/loss_plots/rating_ranges_loss.png" alt="training loss rating ranges model">
+  <img src="models/rating_ranges/Graphs/loss_plot.png" alt="training loss rating ranges model">
 </p>
 
 
-It is important to note that a random classification model with 10 classes would have an average Cross Validation loss of `-ln(1/10) = 2.303`. That means the rating ranges model is better than a random one.
+It is important to note that a random classification model with 16 classes would have an average Cross Validation loss of `ln(16) = 2.772`. That means the rating ranges model is significantly better than a random one.
 
 
-We can clearly see a downwards trend for both models that plateaus. We have reached a stagnation in training while avoiding overfitting.
+We can clearly see a downwards trend that plateaus. We have reached a stagnation in training while avoiding overfitting.
 
 
 ### Predictions
 
 
-To rate the accuracy of the models they are tested on 3000 games (= 6000 predictions, 2 per game for white and black) and pitted against two other trivial models. A random guessing one and one that always predicts a rating around the middle of the rating ladder (800 - 3000). We also give the models a leeway of 200 points on their guess. As the leeway increases so do the correct guesses but the precision is lowered.
+To rate the accuracy of the model it is tested on 3000 games (= 6000 predictions, 2 per game for white and black) and pitted against two other trivial models. A random guessing one and one that always predicts a rating around the middle of the rating ladder (800 - 3000). We also give the models a leeway of 200 points on their guess. As the leeway increases so do the correct guesses but the precision is lowered.
 
 
 #### Trivial models
@@ -54,34 +48,24 @@ To rate the accuracy of the models they are tested on 3000 games (= 6000 predict
 The 2 trivial models seem to have around a 17-23% accuracy for a 200 point leeway and the average difference between the real value and the prediction is 500 points for the constant model and 700 for the random model. The constant models edges out the random one by a bit, both in accuracy and in average. Both of them are very bad at guessing the real elo of a player.
 
 
-#### Single Output model
-
-
-Now for the trained models, after training on 17000 games, the single output model achieved an accuracy of a little over 50% on 3000 test games, getting 3037 of the 6000 predictions within 200 points of the real value. That is an impressive score considering the complexity of chess. The mean difference between real and predicted elo is around 250 points.
-
-<p align="center">
-  <img src="models/loss_plots/single_output_boards_mirrors_predictions.png" alt="training loss rating ranges model">
-</p>
-
-On this graph we can see 2000 of the 6000 predictions made. Plotting the real values with the predictions we can visualize the accuracy of the model. The closer to the red line (perfect matching) a dot is, the better the prediction. Points that fall between the two green lines have a difference of less than 200 points. There we find 50% of the data. Additionally, 90% of the predictions are between the two purple lines, 500 points difference. This makes sense considering a bad game by a 1700 player could resemble a game of a 1200 player. Conversely, a good game by a 1200 could be mistaken for a 1700.
 
 Taking variance in the level of play into account, I would say this model is pretty successful.
 
 #### Rating Ranges model
 
 
-The results for this model are similar. Above a 50% accuracy and less than 250 elo average difference with 90% of predictions within 500 points of the true values. Using it as purely a classification model, it guesses the correct range of the player around 30% of the time.
-
 <p align="center">
-  <img src="models/loss_plots/rating_ranges_boards_mirrors_predictions.png" alt="predictions rating ranges model">
+  <img src="models/rating_ranges/Graphs/predictions.png" alt="predictions rating ranges model">
 </p>
 
-Plotting real values vs predictions we can see a very similar graph. The points follow a line pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
 
-So, for predictions around the middle of the rating ladder, the second model seems better while on the two ends the first one is superior.
+On this graph we can see 2000 of the 6000 predictions made. Plotting the real values with the predictions we can visualize the accuracy of the model. The closer to the red line (perfect matching) a dot is, the better the prediction. Points that fall between the two green lines have a difference of less than 200 points. There we find around 55% of the data. Additionally, 90% of the predictions are between the two purple lines, 500 points difference. This makes sense considering a bad game by a 1700 player could resemble a game of a 1200 player. Conversely, a good game by a 1200 could be mistaken for a 1700.
 
 
-These results can be found in their respective jupyter notebooks.
+The points follow the lines pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
+
+
+These results can be found in the jupyter notebook.
 
 
 ## Usage
@@ -110,41 +94,48 @@ If you copy the pgn from the website's "share" feature onto a plain text file it
 ### Examples
 
 
-Feeding the models [one of my games](https://lichess.org/BoxuoUjy/black#0)
+Feeding the models [one of my games](https://lichess.org/bNLqqjHP/black#0)
 
 ```
 python guess_the_elo.py my_game.pgn
 ```
-<p align="center">
-  <img src="datasets/my_game2.png" alt="game2">
+<p align="center"> 
+  <img src="datasets/showcase_games/game2.gif" alt="game2">
 </p>
 I get predictions:
 
+- 2050 for white
+- 2050 for black
 
-- 1896 for myself (black) and 2091 for my opponent on the first model
-- 1976 for myself and 2067 for my opponent on the second model
 
 Considering I'm around 2000 rated on Lichess, those predictions are pretty good
 
-For [other games](https://lichess.org/bNLqqjHP/black#0) the predictions don't line up in both models.
-<p align="center"> 
-  <img src="datasets/my_game1.png" alt="game1">
+
+For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions aren't as accurate.
+
+<p align="center">
+  <img src="datasets/showcase_games/game1.gif" alt="game1">
 </p>
 
-- 2109 for white and 2212 for black on the first model
-- 1819 for white and 1864 for black on the second model
+The model predicts:
 
-We see that the second model underestimated me and my opponent while the first model overestimated us. It's hard to say which model is correct without an expert analyzing the game. I would assume though that sometimes it's the first, sometimes the second and sometimes none of them.
+- 1500 for white
+- 1300 for black
+
+That's not really close to both of our ratings. It's possible though that we didn't play that well and the ratings it predicts are justified. It's hard to judge without an experienced player analyzing the games as well. 
+
+### Additional Notes
+
 
 We should keep in mind that guessing a player's rating off of a single game is not a very good metric since players can have good or bad games. 
 
 Additionally, a player can't show his full level if their opponent plays badly and hands him the win. That means a player's elo prediction is indirectly affected by his opponent. (though the models judge a player solely on his moves, the positions that arise, which are determined by both players, are also taken into account)
 
-Also, those ratings depend a lot on the stockfish evaluation of each game which isn't totally consistent even when analyzing the same game. This variance is not very big though.
+Also, those ratings depend a lot on the stockfish evaluation of each game which isn't totally consistent even when analyzing the same game.
 
 ## Conclusions
 Wow, chess is a very complex game, who would have thought! 
 
-It seems the models were able to somewhat understand what it means to play at a higher level, but the training dataset was small considering the amount of chess games and the models not deep enough to perfectly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
+It seems the model was able to somewhat understand what it means to play at a higher level, but the training dataset was small considering the amount of chess games possible and the model not deep enough to perfectly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
 
-But it's safe to say that an experienced chess player/coach would probably make more accurate predictions than these models. Still, it was a fun project and a learning experience.
+But it's safe to say that an experienced chess player/coach would probably make more accurate predictions than this model. Still, it was a fun project and a learning experience.

@@ -25,19 +25,26 @@ class EloGuesser(nn.Module):
 
         self.to(device)
 
-    def forward(self, X, h0=None, c0=None):
-        position, evaluation = X
-        white, black = position
-        parsed_position = torch.stack(
-            (self.position_parser(white), self.position_parser(black)))
-        # print(parsed_position.shape)
+    def forward(self, position, evaluation, h0=None, c0=None):
+        # position, evaluation = X
+        # If the input has white and black, parse them separately
+        # If it is just one of them, no need to split and join later
+        if position.size(0) == 2:
+            white, black = position
+            parsed_position = torch.stack(
+                (self.position_parser(white), self.position_parser(black)))
+        else:
+            parsed_position = self.position_parser(position)
+        
         parsed_evaluation = self.evaluation_parser(evaluation)
-        # print(parsed_evaluation.shape)
         
         combined_output = torch.cat((parsed_position, parsed_evaluation), dim=-1)
         lstm_input = self.dense_layer1(combined_output)
 
-        # lstm_input = torch.cat((parsed_position, parsed_evaluation), dim=-1)
+        # Check for unbatched input
+        if lstm_input.dim() == 2:
+            lstm_input = lstm_input.unsqueeze(0)
+
         if c0 is None:
             c0 = torch.zeros(NUM_LAYERS, lstm_input.size(0),
                              LSTM_HIDDEN_SIZE).to(device)
@@ -53,7 +60,7 @@ class EloGuesser(nn.Module):
         return output, (hn, cn)
 
     def create_position_parser(self):
-        # 8x8 board, 2 channels, seq, batch=2
+        # 8x8 board, 2 channels (the board and a "turn mask 1 or -1"), seq, batch=2
         # shape is (2, seq, 2, 8, 8)
         return nn.Sequential(
             nn.Conv2d(self.input_channels, 32,
@@ -77,6 +84,7 @@ class EloGuesser(nn.Module):
 
     def create_lstm_layer(self):
         return nn.LSTM(DENSE_LAYER_SIZE, LSTM_HIDDEN_SIZE, NUM_LAYERS, batch_first=True)
+
 
 
 if __name__ == "__main__":

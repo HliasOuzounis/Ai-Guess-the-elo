@@ -45,7 +45,7 @@ def round_elo(x):
     return 50 * torch.round(x / 50)
 
 if __name__ == "__main__":
-    test = torch.Tensor([600, 800, 850, 976, 2150])
+    test = torch.Tensor([600, 800, 850, 976, 2150]).to(device)
     predictions = guess_elo_from_range(test)
     print(guess_elo_from_range(predictions))
     print(round_elo(guess_elo_from_range(predictions)))

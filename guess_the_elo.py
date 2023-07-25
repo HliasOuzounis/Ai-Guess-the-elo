@@ -53,11 +53,12 @@ def main():
     game = chess.pgn.read_game(open(game_path))
     if game is None:
         raise Exception("Not a valid pgn file")
-    
+
     if not os.path.isfile(engine_path):
         raise Exception("Could not find engine")
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
-    analysis = game_analysis.analyze_game(game, engine, progress_bar=True, time_limit=0.1)
+    analysis = game_analysis.analyze_game(
+        game, engine, progress_bar=True, time_limit=0.1)
     engine.close()
 
     func = position_converters.fen_to_board_mirror
@@ -90,3 +91,6 @@ def predict_rating_ranges(is_chessdotcom, game):
 
 if __name__ == "__main__":
     main()
+    # model = load_model()
+    # torch.onnx.export(model, (torch.zeros(1, 2, 8, 8).to(device), torch.zeros(1, 17).to(
+    #     device),), "models/rating_ranges/Graphs/boards_mirrors.onnx", input_names=["Position", "Evaluation"], output_names=["Probabilities", "hn", "cn"])
