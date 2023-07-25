@@ -13,7 +13,7 @@ rating_ranges = torch.stack([
 def get_rating_ranges():
     return rating_ranges
 
-def guess_elo_from_range(true_elo):
+def calculate_rating_ranges(true_elo):
     if true_elo.ndim == 1:
         true_elo = true_elo.view(-1, 1)
     if true_elo.device != device:
