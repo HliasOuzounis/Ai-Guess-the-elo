@@ -64,8 +64,12 @@ def main():
     func = position_converters.fen_to_board_mirror
     positions, _elo = position_converters.convert_position(game, func)
 
-    predict_rating_ranges(
+    predictions = predict_rating_ranges(
         is_chessdotcom, (positions.to(device), analysis.to(device)))
+    
+    final_predictions = predictions[-1]
+    print(
+        f"Models predictions are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
 
 
 def predict_rating_ranges(is_chessdotcom, game):
@@ -84,9 +88,7 @@ def predict_rating_ranges(is_chessdotcom, game):
             elo_predictions = convert_to_chessdotcom(elo_predictions)
         predictions.append(elo_predictions.int().tolist())
 
-    final_predictions = predictions[-1]
-    print(
-        f"Models predictions are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
+    return predictions
 
 
 if __name__ == "__main__":
