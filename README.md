@@ -8,7 +8,7 @@ All the effort on the project is condensed into a single file. You can run the `
 ## The Backbone
 The project uses LSTM models from the [PyTorch](https://pytorch.org) library to make the elo predictions. The models are fed games analyzed by stockfish and the [python-chess](https://python-chess.readthedocs.io/en/latest/#) library.
 
-LSTM models were used, firstly as a learning experience, and secondly because their "memory" feature I thought closely resembles how a human would analyze a game. For more explanations behind the decisions made read the [Decisions Explained](elo_ai/models/Decisions_Explained.md) file. 
+LSTM models were used, firstly as a learning experience, and secondly because their "memory" feature I thought closely resembles how a human would analyze a game. For more explanations behind the decisions made read the [Decisions Explained](/elo_ai/models/Decisions_Explained.md) file. 
 
 For the training data, games from all elo ranges from the [open lichess database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the process of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
