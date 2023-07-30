@@ -43,7 +43,7 @@ def load_model():
     classes = 16
     model = complex_network.EloGuesser(
         input_size, input_channels=channels, num_classes=classes)
-    model.load_state_dict(torch.load("models/rating_ranges/boards_mirrors.pt"))
+    model.load_state_dict(torch.load("elo_ai/models/rating_ranges/boards_mirrors.pt"))
     return model
 
 
