@@ -32,10 +32,6 @@ def load_games(position_type, dataset_path="/datasets/"):
         (game_position, game_analysis, game_elo)
         for game_position, game_analysis, game_elo in zip(positions, analysis, elo)
     ]
-    # dataset = [
-    #     (torch.cat((game_position, game_analysis), dim=-1), game_elo)
-    #     for game_position, game_analysis, game_elo in zip(positions, analysis, elo)
-    # ]
 
     return dataset
 

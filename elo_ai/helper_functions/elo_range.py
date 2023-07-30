@@ -1,17 +1,21 @@
 import torch
 
+from elo_ai.helper_functions.get_device import get_device
+device = get_device()
+
 start = 200
 end = 3600
 step = 200
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 rating_ranges = torch.stack([
     torch.Tensor((low, high)) for low, high in zip(range(start, end - step, step), range(start + step, end, step))
 ]).int().to(device)
 
+
 def get_rating_ranges():
     return rating_ranges
+
 
 def calculate_rating_ranges(true_elo):
     if true_elo.ndim == 1:
@@ -26,7 +30,7 @@ def calculate_rating_ranges(true_elo):
 def guess_elo_from_range(probability_ranges):
     if probability_ranges.ndim == 1:
         probability_ranges = probability_ranges.unsqueeze(0)
-        
+
     cum_probs = torch.cumsum(probability_ranges, dim=1)
     # Find the index where the cumulative probability is greater than 0.5, meaning we have passed the mean
     mean_index = torch.argmax((cum_probs > 0.5).int(), dim=1)
@@ -43,6 +47,7 @@ def guess_elo_from_range(probability_ranges):
 
 def round_elo(x):
     return 50 * torch.round(x / 50)
+
 
 if __name__ == "__main__":
     test = torch.Tensor([600, 800, 850, 976, 2150]).to(device)

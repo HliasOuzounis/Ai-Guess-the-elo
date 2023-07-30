@@ -130,7 +130,7 @@ def fen_to_board_mirror(fen_str):
 
 
 if __name__ == "__main__":
-    from elo_guesser.helper_functions.elo_range import get_rating_ranges
+    from elo_ai.helper_functions.elo_range import get_rating_ranges
     import chess.pgn
     rating_ranges = get_rating_ranges()[3:-3].tolist()
     rating_ranges = tuple(map(tuple, rating_ranges))

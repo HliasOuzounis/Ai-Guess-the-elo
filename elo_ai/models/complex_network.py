@@ -1,4 +1,4 @@
-from elo_guesser.helper_functions.get_device import get_device
+from elo_ai.helper_functions.get_device import get_device
 import torch
 from torch import nn
 

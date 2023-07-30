@@ -5,11 +5,11 @@ import torch
 import chess.engine
 import chess.pgn
 
-from elo_guesser.models import complex_network
-from elo_guesser.helper_functions import game_analysis, position_converters
-from elo_guesser.helper_functions.elo_range import guess_elo_from_range, round_elo
+from elo_ai.models import complex_network
+from elo_ai.helper_functions import game_analysis, position_converters
+from elo_ai.helper_functions.elo_range import guess_elo_from_range, round_elo
 
-from elo_guesser.helper_functions.get_device import get_device
+from elo_ai.helper_functions.get_device import get_device
 device = get_device()
 
 mate_score = 1_000

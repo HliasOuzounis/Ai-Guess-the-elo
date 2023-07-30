@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 
-from elo_guesser.helper_functions import elo_range
+from elo_ai.helper_functions import elo_range
 
 fig, axs = plt.subplots(2, 1, sharex=True)
 stdev = 200
