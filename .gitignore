@@ -4,5 +4,6 @@ __pycache__
 datasets/*/*.pt
 *.pdf
 *.zip
+*.egg-info
 /.vscode
 temp
