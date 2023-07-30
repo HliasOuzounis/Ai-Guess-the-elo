@@ -27,14 +27,18 @@ def get_game():
     parser.add_argument(
         "-c", action="store_true", help="True if the pgn file is from chess.com false otherwise"
     )
+    # parser.add_argument(
+    #     "--username", type=str, metavar="username", help="The username of the player ou want predictions for", default=None
+    # )
     args = parser.parse_args()
 
     return args.pgn_file, args.engine, args.c
 
 
 def convert_to_chessdotcom(prediction):
-    # Lichess ratings are usually around 400 points higher than chess.com
-    return prediction - 400
+    # Taken from this forum https://lichess.org/forum/general-chess-discussion/rating-conversion-formulae-lichessorg--chesscom
+    # Considered only the blitz formula for simplicity
+    return 1.138 * prediction - 665
 
 
 def load_model():
@@ -43,36 +47,51 @@ def load_model():
     classes = 16
     model = complex_network.EloGuesser(
         input_size, input_channels=channels, num_classes=classes)
-    model.load_state_dict(torch.load("elo_ai/models/rating_ranges/boards_mirrors.pt"))
+    model.load_state_dict(torch.load(
+        "elo_ai/models/rating_ranges/boards_mirrors.pt"))
     return model
 
 
 def main():
     game_path, engine_path, is_chessdotcom = get_game()
 
-    game = chess.pgn.read_game(open(game_path))
-    if game is None:
-        raise Exception("Not a valid pgn file")
-
     if not os.path.isfile(engine_path):
         raise Exception("Could not find engine")
     engine = chess.engine.SimpleEngine.popen_uci(engine_path)
+
+    games = []
+    game_index = 0
+    with open(game_path) as pgn:
+        while True:
+            game_index += 1
+            game = chess.pgn.read_game(pgn)
+            if game is None:
+                break
+            games.append(game)
+            predict_game(is_chessdotcom, game, engine, game_index)
+
+    engine.close()
+
+
+def predict_game(is_chessdotcom, game, engine, game_index):
+
     analysis = game_analysis.analyze_game(
         game, engine, progress_bar=True, time_limit=0.1)
-    engine.close()
 
     func = position_converters.fen_to_board_mirror
     positions, _elo = position_converters.convert_position(game, func)
 
-    predictions = predict_rating_ranges(
+    predictions = get_ai_prediction(
         is_chessdotcom, (positions.to(device), analysis.to(device)))
-    
+
     final_predictions = predictions[-1]
     print(
-        f"Models predictions are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
+        f"Models predictions for game {game_index} are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
+
+    return final_predictions
 
 
-def predict_rating_ranges(is_chessdotcom, game):
+def get_ai_prediction(is_chessdotcom, game):
     model = load_model()
     positions, analysis = game
     c, h = None, None
@@ -83,10 +102,10 @@ def predict_rating_ranges(is_chessdotcom, game):
         pos, evaluation = (positions[:, move].unsqueeze(1),
                            analysis[:, move].unsqueeze(1))
         prediction, (h, c) = model.eval()((pos, evaluation), h, c)
-        elo_predictions = round_elo(guess_elo_from_range(prediction))
+        elo_predictions = guess_elo_from_range(prediction)
         if is_chessdotcom:
             elo_predictions = convert_to_chessdotcom(elo_predictions)
-        predictions.append(elo_predictions.int().tolist())
+        predictions.append(round_elo(elo_predictions).int().tolist())
 
     return predictions
 
