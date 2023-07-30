@@ -1,5 +1,12 @@
+# Math libraries for machine learning and more
 torch 
 numpy
-tqdm
+# Chess library to load and parse chess games
 python-chess
+# Visualization and plotting
+tqdm
+matplotlib
+keyboard
+
+# Local library to import helpful functions and the trained model
 -e .

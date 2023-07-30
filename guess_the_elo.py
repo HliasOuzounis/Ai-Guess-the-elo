@@ -7,7 +7,8 @@ import chess.pgn
 
 from elo_ai.models import complex_network
 from elo_ai.helper_functions import game_analysis, position_converters
-from elo_ai.helper_functions.elo_range import guess_elo_from_range, round_elo
+from elo_ai.helper_functions.elo_range import get_elo_prediction
+from elo_ai.helper_functions.visualize_predictions import plot_predictions
 
 from elo_ai.helper_functions.get_device import get_device
 device = get_device()
@@ -27,18 +28,16 @@ def get_game():
     parser.add_argument(
         "-c", action="store_true", help="True if the pgn file is from chess.com false otherwise"
     )
+    parser.add_argument(
+        "-v", action="store_true", help="True if you want to visualize the predictions"
+    )
     # parser.add_argument(
     #     "--username", type=str, metavar="username", help="The username of the player ou want predictions for", default=None
     # )
     args = parser.parse_args()
 
-    return args.pgn_file, args.engine, args.c
+    return args.pgn_file, args.engine, args.c, args.v
 
-
-def convert_to_chessdotcom(prediction):
-    # Taken from this forum https://lichess.org/forum/general-chess-discussion/rating-conversion-formulae-lichessorg--chesscom
-    # Considered only the blitz formula for simplicity
-    return 1.138 * prediction - 665
 
 
 def load_model():
@@ -53,7 +52,7 @@ def load_model():
 
 
 def main():
-    game_path, engine_path, is_chessdotcom = get_game()
+    game_path, engine_path, is_chessdotcom, visualize = get_game()
 
     if not os.path.isfile(engine_path):
         raise Exception("Could not find engine")
@@ -68,7 +67,11 @@ def main():
             if game is None:
                 break
             games.append(game)
-            predict_game(is_chessdotcom, game, engine, game_index)
+            predictions = predict_game(
+                is_chessdotcom, game, engine, game_index)
+            if visualize:
+                print(len(predictions))
+                plot_predictions(predictions)
 
     engine.close()
 
@@ -82,16 +85,16 @@ def predict_game(is_chessdotcom, game, engine, game_index):
     positions, _elo = position_converters.convert_position(game, func)
 
     predictions = get_ai_prediction(
-        is_chessdotcom, (positions.to(device), analysis.to(device)))
+        (positions.to(device), analysis.to(device)))
 
-    final_predictions = predictions[-1]
+    final_predictions = get_elo_prediction(predictions[-1], is_chessdotcom)
     print(
         f"Models predictions for game {game_index} are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
 
-    return final_predictions
+    return predictions
 
 
-def get_ai_prediction(is_chessdotcom, game):
+def get_ai_prediction(game):
     model = load_model()
     positions, analysis = game
     c, h = None, None
@@ -102,10 +105,7 @@ def get_ai_prediction(is_chessdotcom, game):
         pos, evaluation = (positions[:, move].unsqueeze(1),
                            analysis[:, move].unsqueeze(1))
         prediction, (h, c) = model.eval()((pos, evaluation), h, c)
-        elo_predictions = guess_elo_from_range(prediction)
-        if is_chessdotcom:
-            elo_predictions = convert_to_chessdotcom(elo_predictions)
-        predictions.append(round_elo(elo_predictions).int().tolist())
+        predictions.append(prediction)
 
     return predictions
 

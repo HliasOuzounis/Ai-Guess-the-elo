@@ -49,6 +49,19 @@ def round_elo(x):
     return 50 * torch.round(x / 50)
 
 
+def convert_to_chessdotcom(prediction):
+    # Taken from this discussion https://lichess.org/forum/general-chess-discussion/rating-conversion-formulae-lichessorg--chesscom
+    # Considered only the blitz formula for simplicity
+    return 1.138 * prediction - 665
+
+
+def get_elo_prediction(predictions, is_chessdotcom=False):
+    predictions = guess_elo_from_range(predictions)
+    if is_chessdotcom:
+        predictions = convert_to_chessdotcom(predictions)
+    return round_elo(predictions).int().tolist()
+
+
 if __name__ == "__main__":
     test = torch.Tensor([600, 800, 850, 976, 2150]).to(device)
     predictions = guess_elo_from_range(test)
