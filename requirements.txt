@@ -6,7 +6,6 @@ python-chess
 # Visualization and plotting
 tqdm
 matplotlib
-keyboard
 
 # Local library to import helpful functions and the trained model
 -e .
