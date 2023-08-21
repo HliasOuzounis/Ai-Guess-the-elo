@@ -33,12 +33,13 @@ def compare_results(predictions, y_test):
 
 def plot_predictions(predictions, y_test, fifty=None, ninety=None):
     fig, axs = plt.subplots(1, 1)
-    axs.plot(y_test[:2000], predictions[:2000], 'o', label="Predicted vs Real")
+    samples = 1500
+    axs.plot(y_test[:samples], predictions[:samples], 'o', label="Predicted vs Real")
 
     # the closer to this line the better
     axs.plot([800, 2800], [800, 2800], 'r-', label="Perfect prediction")
     axs.plot([800, 2800], [800 + fifty, 2800 + fifty],
-             'g--', label="200 points error")
+             'g--', label="50% of data")
     # these two lines show acceptable error (200 elo)
     axs.plot([800, 2800], [800 - fifty, 2800 - fifty], 'g--', label="")
 

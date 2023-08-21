@@ -66,7 +66,7 @@ The points follow the lines pretty closely meaning the model has understood the 
 
 
 Considering the variance of a players strength, these results are pretty good.
-
+        size mismatch for dense_layer2.weight: copying a param with shape torch.Size([16, 64]) from checkpoint, the shape in current model is torch.Size([39, 64]).
 These results can be found in the [jupyter notebook](/elo_ai/models/rating_ranges/lstm_train_rating_ranges.ipynb) that was used.
 
 

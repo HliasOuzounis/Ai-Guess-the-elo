@@ -7,7 +7,7 @@ import chess.pgn
 
 from elo_ai.models import complex_network
 from elo_ai.helper_functions import game_analysis, position_converters
-from elo_ai.helper_functions.elo_range import get_elo_prediction
+from elo_ai.helper_functions.elo_range import get_elo_prediction, get_rating_ranges
 from elo_ai.helper_functions.visualize_predictions import plot_predictions
 
 from elo_ai.helper_functions.get_device import get_device
@@ -39,11 +39,10 @@ def get_game():
     return args.pgn_file, args.engine, args.c, args.v
 
 
-
 def load_model():
     input_size = 17
     channels = 2
-    classes = 16
+    classes = len(get_rating_ranges())
     model = complex_network.EloGuesser(
         input_size, input_channels=channels, num_classes=classes)
     model.load_state_dict(torch.load(
@@ -70,7 +69,6 @@ def main():
             predictions = predict_game(
                 is_chessdotcom, game, engine, game_index)
             if visualize:
-                print(len(predictions))
                 plot_predictions(predictions)
 
     engine.close()
@@ -87,7 +85,7 @@ def predict_game(is_chessdotcom, game, engine, game_index):
     predictions = get_ai_prediction(
         (positions.to(device), analysis.to(device)))
 
-    final_predictions = get_elo_prediction(predictions[-1], is_chessdotcom)
+    final_predictions = get_elo_prediction(predictions[-1], is_chessdotcom, round=True)
     print(
         f"Models predictions for game {game_index} are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
 

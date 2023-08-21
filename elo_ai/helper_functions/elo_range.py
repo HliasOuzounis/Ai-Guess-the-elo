@@ -3,9 +3,9 @@ import torch
 from elo_ai.helper_functions.get_device import get_device
 device = get_device()
 
-start = 200
-end = 3600
-step = 200
+start = 0
+end = 4000
+step = 100
 
 
 rating_ranges = torch.stack([
@@ -22,7 +22,7 @@ def calculate_rating_ranges(true_elo):
         true_elo = true_elo.view(-1, 1)
     if true_elo.device != device:
         true_elo = true_elo.to(device)
-    stdev = 200
+    stdev = 280
     norm_distribution = torch.distributions.Normal(true_elo, stdev)
     return norm_distribution.cdf(rating_ranges[:, 1]) - norm_distribution.cdf(rating_ranges[:, 0])
 
@@ -30,7 +30,6 @@ def calculate_rating_ranges(true_elo):
 def guess_elo_from_range(probability_ranges):
     if probability_ranges.ndim == 1:
         probability_ranges = probability_ranges.unsqueeze(0)
-
     cum_probs = torch.cumsum(probability_ranges, dim=1)
     # Find the index where the cumulative probability is greater than 0.5, meaning we have passed the mean
     mean_index = torch.argmax((cum_probs > 0.5).int(), dim=1)
@@ -55,11 +54,11 @@ def convert_to_chessdotcom(prediction):
     return 1.138 * prediction - 665
 
 
-def get_elo_prediction(predictions, is_chessdotcom=False):
+def get_elo_prediction(predictions, is_chessdotcom=False, round=False):
     predictions = guess_elo_from_range(predictions)
     if is_chessdotcom:
         predictions = convert_to_chessdotcom(predictions)
-    return round_elo(predictions).int().tolist()
+    return round_elo(predictions).int().tolist() if round else predictions.int().tolist()
 
 
 if __name__ == "__main__":

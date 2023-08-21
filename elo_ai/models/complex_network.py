@@ -22,6 +22,7 @@ class EloGuesser(nn.Module):
         self.lstm_layer = self.create_lstm_layer()
         self.dense_layer2 = nn.Linear(LSTM_HIDDEN_SIZE, num_classes)
         self.softmax = nn.Softmax(dim=-1)
+        self.log_softmax = nn.LogSoftmax(dim=-1)
 
         self.to(device)
 
@@ -54,7 +55,9 @@ class EloGuesser(nn.Module):
         lstm_output, (hn, cn) = self.lstm_layer(lstm_input, (h0, c0))
 
         output = self.dense_layer2(lstm_output[:, -1, :])
-        if not self.training: 
+        if self.training: 
+            output = self.log_softmax(output)
+        else:
             output = self.softmax(output)
 
         return output, (hn, cn)
