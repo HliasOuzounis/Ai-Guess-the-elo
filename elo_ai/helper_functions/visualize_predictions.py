@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from elo_ai.helper_functions.elo_range import get_elo_prediction
+from elo_ai.helper_functions.elo_range import get_elo_prediction, get_rating_ranges
+
+rating_ranges = get_rating_ranges()[:, 0].tolist()
 
 
 def plot_predictions(sequential_predictions, is_chessdotcom=False):
@@ -14,7 +16,7 @@ def plot_predictions(sequential_predictions, is_chessdotcom=False):
             current_index += 1
         elif event.key == 'left' and current_index > 0:
             current_index -= 1
-        elif event.key == 'escape':
+        elif event.key in ('escape', 'q'):
             plt.close()
             return
 
@@ -27,13 +29,13 @@ def plot_predictions(sequential_predictions, is_chessdotcom=False):
 
     def plot_index(axis, color, name):
         is_white =  0 if name == "White" else 1
-        axis.bar(np.arange(16), sequential_predictions[current_index][is_white].tolist(), color=color)
-        axis.set_title(f'{name} Prediction {current_index + 1}: {get_elo_prediction(sequential_predictions[current_index][is_white], is_chessdotcom)[0]}')
+        axis.bar(np.arange(len(rating_ranges)), sequential_predictions[current_index][is_white].tolist(), color=color)
+        axis.set_title(f'{name}\nMove: {current_index + 1}, Prediction: {get_elo_prediction(sequential_predictions[current_index][is_white], is_chessdotcom)}')
         axis.set_xlabel('Rating Range')
         axis.set_ylabel('Probability')
-        axis.set_xticks(range(16))
-        axis.set_xticklabels(np.arange(400, 3600, 200))
-        axis.set_ylim(0, 0.7)
+        axis.set_xticks(range(0, len(rating_ranges), 5))
+        axis.set_xticklabels(rating_ranges[::5])
+        axis.set_ylim(0, 0.4)
 
     fig, (white_ax, black_ax) = plt.subplots(1, 2, figsize=(14, 7))
     fig.canvas.mpl_connect('key_press_event', on_key)
