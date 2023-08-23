@@ -28,20 +28,14 @@ def calculate_rating_ranges(true_elo):
 
 
 def guess_elo_from_range(probability_ranges):
+    # Find the average elo that would have played that game
     if probability_ranges.ndim == 1:
         probability_ranges = probability_ranges.unsqueeze(0)
-    cum_probs = torch.cumsum(probability_ranges, dim=1)
-    # Find the index where the cumulative probability is greater than 0.5, meaning we have passed the mean
-    mean_index = torch.argmax((cum_probs > 0.5).int(), dim=1)
-    # Assuming the probability density inside the range is constant
-    # We can find the exact point where cum_prob = 0.5
-    # We need a percentage of the range to have a cumulative probability of 0.5
-    # We know the cum_prob until the previous range so we need 0.5 - cum_prob more
-    # For that range, prob_needed = x * total_prob_in_range where x is a percentage of the range
-    # rearranging:
-    x = (0.5 - cum_probs[:, mean_index-1]) / probability_ranges[:, mean_index]
-    # Adding the percentage of the range to the lower bound we get the value where cum_prob = 0.5
-    return (rating_ranges[mean_index, 0] + x*step).diag().view(-1, 1)
+    # Find the mid elo of each range and multiply it by the probability of that range to find the mean
+    mid_rating_ranges = (rating_ranges[:, 0] + rating_ranges[:, 1]) / 2
+    probability_ranges = probability_ranges.to(device)
+    return torch.sum(probability_ranges * mid_rating_ranges, dim=1)
+    
 
 
 def round_elo(x):
