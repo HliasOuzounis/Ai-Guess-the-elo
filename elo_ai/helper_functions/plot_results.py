@@ -10,7 +10,6 @@ def plot_loss(loss_graph):
     plt.xlabel("Epoch")
     plt.xticks([i for i in range(0, len(loss_graph) + 1, 2)])
     plt.ylabel("Loss")
-    # With 15 classes a random model would have -log(1/15) = 2.7 loss
     plt.savefig("temp/loss_plot.png")
 
 
