@@ -10,11 +10,11 @@ Then LSTM models are the logical continuation. They combat the long-term depende
 
 This to me sounded a lot like how a human would approach guessing the elo of a chess game. Yes, maybe the player blundered in the beginning but made a comeback by playing a lot of good moves in a row. Then we could "forgive" the earlier mistake. Or the opposite. The player made a high level move but then immediately blundered and lost all his advantage. Then we could consider the good move a fluke and ignore it.
 
-There was a thought to use transformers considering their popularity recently and the fact that they can use attention to better understand the relations between data or in this case chess moves. If trained well they could look at games not in terms of singular moves but by whole ideas and plans, looking at 5 or 6 moves at a time. Though they are computationally more expansive and need a fixed input size. But that's something to consider for a future project.
+I thought of using transformers considering their popularity recently and the fact that they can use attention to better understand the relations between data or in this case chess moves. If trained well they could look at games not in terms of singular moves but by whole ideas and plans, looking at 5 or 6 moves at a time. Though they are computationally more expansive and need a fixed input size. But that's something to consider for a future project.
 
 ## What's the architecture of the network?
 
-As explained above, the model utilizes the LSTM architecture to handle sequential inputs and make rating predictions using information from the current and past moves. Additionally it uses a cnn layer to analyze the chess positions and after the cnn output is flattened, it is combined with the stockfish analysis, that has also been parsed, and passed through a dense layer. The dense layer returns 16 outputs that get passed through a softmax layer to get the probability of each range.
+As explained above, the model utilizes the LSTM architecture to handle sequential inputs and make rating predictions using information from the current and past moves. Additionally it uses a cnn layer to analyze the chess positions and after the cnn output is flattened, it is combined with the stockfish analysis, that has also been parsed, and passed through a dense layer. The  outputs of the dense layer get passed through a softmax layer to get the probability of each range.
 
 <p align="center">
 <img src="rating_ranges/Graphs/boards_mirrors.onnx.png" alt="rating ranges distribution">
@@ -51,10 +51,35 @@ My first thought on the output of the model was a single value to predict the el
 
 To improve on this approach I examined how the ELO rating system works. In general, a player's strength isn't simply a fixed value but has some variance from game to game. So, by modeling the player's strength as a probability distribution over the whole elo rating range we can better model how they might play on a game to game basis. Some games they might play better than their elo, some worse, but it all averages out to their true elo rating.
 
-With that in mind I picked 16 elo rating ranges and for each player in the training dataset I calculated the probability of playing in each range by taking the integral of the probability density function in that range. The probability density function for each player is a normal distribution with mean their true elo rating and standard deviation 200.
+With that in mind I split the elo ladder (0-4000) into rating ranges and for each player in the training dataset I calculated the probability of playing in each range by taking the integral of the probability density function in that range. The probability density function for each player is a normal distribution with mean their true elo rating and standard deviation 200 (more on that below).
 
 <p align="center">
   <img src="rating_ranges/Graphs/probabilities_rating_ranges.png" alt="rating ranges distribution">
 </p>
 
-The output of this new model would be a 16-vector with the probabilities of the player being in each of the 10 ranges. To take these probabilities and calculate the mean, we find the point at which the cumulative probability is 0.5. This has now turned into a classification problem (almost) where the model tries to predict the probability of the player's elo belonging to each range. That's the mechanism behind the [rating-ranges model](lstm_train_rating_ranges.ipynb).
+The output of this new model would be a 39-vector with the probability of the rating of the player falling in each of the 39 rating ranges. To take these probabilities and calculate the mean, we find the middle of each range and take the weighted average of them by multiplying with the predicted probability. That's the mechanism behind the [rating-ranges model](lstm_train_rating_ranges.ipynb).
+
+## Modeling the Elo as a normal distribution
+
+Because a player's strength isn't fixed but has some variance from game to game, we model it as a normal distribution with mean the displayed elo of the player. To calculate the variance the distribution should have turn to how elo is calculated.
+
+According to the Elo formula
+${\displaystyle E_{\mathsf {A}}={\frac {1}{1+10^{(R_{\mathsf {B}}-R_{\mathsf {A}})/400}}}}$, where $R_A, R_B$ are the ratings of player A and B and $E_A$ is the expected score of player A
+
+A difference of 100 points ($R_A = R_B + 100$) would mean an expected score for player A of 0.64, meaning he's expected to win 64% of the time. A difference of 200 points gives a 76% for A to win and a 400 points difference a 91% chance.
+
+Considering the normal distributions of the players, player A has a distribution with mean = $R_A$ and standard deviation = σ and for player B, mean = $R_B$ and standard deviation = σ. The goal is to find σ.
+
+What is the probability that A beats B with this approach? If X is a sample of player's A distribution and Y a sample of player's B, then we need to find the probability $P(X > Y)$.
+
+But, $P( X > Y) = P(X - Y > 0)$. Because X and Y follow a normal distribution, their difference follows one as well. The mean of the new distribution is $μ = μ_X - μ_Y = R_A - R_B$ ad the standard deviation is $σ_Z = \sqrt{σ_X^2 + σ_Y^2} = \sqrt{2σ^2} = σ\sqrt{2}$
+
+If we want a 64% that player A wins if he's 100 points higher rated then $P( X > Y ) = 0.64 => P(Z > 0) = 0.64$ where $Z = X-Y$.
+We standardize, ${\displaystyle P( {\frac {Z - μ}{σ_Z} > - \frac {μ}{σ_Z}}) = P(\frac {Z - μ} {σ_Z} < \frac {μ} {σ_Z})}$ and substituting
+$P(z < \frac {100} {σ\sqrt 2}) = 0.64$. Since z follows a standard normal distribution we can use a lookup table. The z-factor that corresponds to 0.64 probability is 0.361. That means that $\frac {100} {σ\sqrt 2} = 0.361 => σ = 195$
+
+For a 200 points difference the z factor turns out to be 0.705 which in turn gives $σ = 199$
+
+For 400 points difference the z factor is 1.34 and $σ = 211$
+
+Because the Elo system wasn't strictly built around normal distributions, the calculated standard deviation is not the same for every case and differs by a bit. As a good approximation we'll take the standard deviation to be 200.

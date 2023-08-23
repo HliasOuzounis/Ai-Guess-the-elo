@@ -22,29 +22,19 @@ To find the true elo of the player, the model takes the mean of the distribution
 
 ### Training
 
-The model was trained on 20000 games played on lichess.org in June 2018, 2000 games of each elo range were selected. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. It was trained for 20 epochs, enough to decrease the loss while also avoiding overfitting.
+The model was trained on 20000 games played on lichess.org in June 2018 chosen uniformly over all ratings. From those, 15% was used for testing and from the remaining 85%, 10% was used for validation. It was trained for 20 epochs, enough to decrease the loss while also avoiding overfitting.
 
-#### Rating Ranges model
-
-For the model Cross Validation was used as the loss function. We can think of it as a classification problem with 16 classes, the rating ranges.
+For the model Kullback-Leibler Divergence loss was used for training. KLDiv loss is used to find the divergence between two distribution. In this case, between the elo distribution of the player and the predicted distribution of the model.
 
 <p align="center">
   <img src="/elo_ai/models/rating_ranges/Graphs/loss_plot.png" alt="training loss rating ranges model">
 </p>
 
-It is important to note that a random classification model with 16 classes would have an average Cross Validation loss of `ln(16) = 2.772`. That means the rating ranges model is significantly better than a random one.
-
 We can clearly see a downwards trend that plateaus. We have reached a stagnation in training while avoiding overfitting.
 
 ### Predictions
 
-To rate the accuracy of the model it is tested on 3000 games (= 6000 predictions, 2 per game for white and black) and pitted against two other trivial models. A random guessing one and one that always predicts a rating around the middle of the rating ladder (800 - 3000). We also give the models a leeway of 200 points on their guess. As the leeway increases so do the correct guesses but the precision is lowered.
-
-#### Trivial models predictions
-
-The 2 trivial models seem to have around a 17-23% accuracy for a 200 point leeway and the average difference between the real value and the prediction is 500 points for the constant model and 700 for the random model. The constant models edges out the random one by a bit, both in accuracy and in average. Both of them are very bad at guessing the real elo of a player.
-
-#### Rating Ranges model predictions
+To rate the accuracy of the model it is tested on 3000 games (= 6000 predictions, 2 per game for white and black)
 
 Plotting the real values with the predictions we can visualize the accuracy of the model.
 
@@ -52,13 +42,14 @@ Plotting the real values with the predictions we can visualize the accuracy of t
   <img src="/elo_ai/models/rating_ranges/Graphs/predictions.png" alt="predictions rating ranges model">
 </p>
 
-On this graph we can see 2000 of the 6000 predictions made.  The closer to the red line (perfect matching) a dot is, the better the prediction. Points that fall between the two green lines have a difference of less than 200 points. There we find around 55% of the data. Additionally, 90% of the predictions are between the two purple lines, 500 points difference. This makes sense considering a bad game by a 1700 player could resemble a game of a 1200 player. Conversely, a good game by a 1200 could be mistaken for a 1700.
+On this graph we can see 2000 of the 6000 predictions made.  The closer to the red line (perfect matching) a dot is, the better the prediction.
+Between the green lines is 50% of the data.  Additionally, 90% of the predictions are between the two purple lines, 500 points difference. This makes sense considering a bad game by a 1700 player could resemble a game of a 1200 player. Conversely, a good game by a 1200 could be mistaken for a 1700.
 
 The points follow the lines pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
 
-Considering the variance of a players strength, these results are pretty good.
-        size mismatch for dense_layer2.weight: copying a param with shape torch.Size([16, 64]) from checkpoint, the shape in current model is torch.Size([39, 64]).
-These results can be found in the [jupyter notebook](/elo_ai/models/rating_ranges/lstm_train_rating_ranges.ipynb) that was used.
+Keeping in mind that a player's strength was modeled as a normal distribution, according to the 68-95-99 rule, we should expect 68% of the predictions to fall within one standard deviation from the mean, 95% within two and 99% within three. In reality, the model's predictions fall 67% of the time within one standard deviation (280 points) from the true elo of the player, 94% within two and 98.7% within three. That means the model is very close to the expected accuracy.
+
+These results can be found in the  [jupyter notebook](/elo_ai/models/rating_ranges/lstm_train_rating_ranges.ipynb).
 
 ## Usage
 
@@ -74,12 +65,14 @@ or download the files from the release page (outdated: old models, less accurate
 and run the `guess_the_elo.py` file with python
 
 ```shell
-python guess_the_elo.py [--engine engine-dir] [-c] pgn_file
+python guess_the_elo.py [--engine engine-dir] [-c] [-v] pgn_file
 ```
+
+Because the games need to be analyzed by an engine first, you need to have a chess engine installed, preferably [stockfish](https://stockfishchess.org/download/). Pass the path as the --engine argument when calling the file. On linux you can find the installed path of stockfish with `which stockfish`. On my arch-based distro that was `/usr/bin/stockfish` which I have used as the default.
 
 Because the training dataset was from lichess.org, the model has learned to predict lichess ratings. If your game is from chess.com pass the -c flag so the elo gets converted. On average chess.com ratings are 400 points lower than lichess.org.
 
-Because the games need to be analyzed by an engine first, you need to have a chess engine installed, preferably [stockfish](https://stockfishchess.org/download/). Pass the path as the --engine argument when calling the file. On linux you can find the installed path of stockfish with `which stockfish`. On my arch-based distro that was `/usr/bin/stockfish` which I have used as the default.
+If you want to visualize the predictions and see the probability distributions it predicts at each move, pass the -v flag. It will display the predictions at each move in a new window where you can navigate with the arrow keys. The predictions displayed will be in the lichess version. Press "ESC" or "q" to exit.
 
 Finally, pass the pgn file which contains the game as the last argument. It needs to be parsable by chess.pgn.read_game(). If you copy the pgn from the website's "share" feature onto a plain text file it should be good enough.
 
@@ -96,10 +89,10 @@ python guess_the_elo.py my_game.pgn
 </p>
 I get predictions:
 
-- 2050 for white
-- 2050 for black
+- 1800 for white
+- 1900 for black
 
-Considering I'm around 2000 rated on Lichess, those predictions are very good.
+Considering I'm around 2000 rated on Lichess, those predictions are good.
 
 For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions aren't as accurate.
 
@@ -109,10 +102,10 @@ For [other games](https://lichess.org/BoxuoUjy/black#0) the predictions aren't a
 
 The model predicts:
 
-- 1500 for white
-- 1300 for black
+- 1600 for white
+- 1650 for black
 
-That's not really close to both of our ratings. It's possible though that we didn't play that well and the ratings it predicts are justified. It's hard to judge without an experienced player analyzing the games as well.
+That's not very close to both of our ratings, it's within 2 standard deviations. It's possible though that we didn't play that well and the ratings it predicts are justified. It's hard to judge without an experienced player analyzing the games as well.
 
 ### Additional Notes
 
@@ -126,6 +119,6 @@ Also, those ratings depend a lot on the stockfish evaluation of each game which 
 
 Wow, chess is a very complex game, who would have thought!
 
-It seems the model was able to somewhat understand what it means to play at a higher level, but the training dataset was small considering the amount of chess games possible and the model not deep enough to perfectly grasp the level of a player based on their moves. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
+It seems the model was able to understand what it means to play at a higher level, but the training dataset was small considering the amount of chess games possible and the model not deep enough to perfectly grasp the level of a player based on their moves especially at the edges of the rating ladder. It's also true that a players strength is difficult to measure based on just one game as the level of play has a lot of variance. Despite that, the accuracy that was achieved was satisfactory.
 
 But it's safe to say that an experienced chess player/coach would probably make more accurate predictions than this model. Still, it was a fun project and a learning experience.
