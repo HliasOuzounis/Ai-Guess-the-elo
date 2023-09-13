@@ -19,6 +19,6 @@ for elo, color in zip(elos, cols):
     axs[0].set_title("Probability of Rating Ranges")
     axs[0].bar(rating_ranges, probabilities.view(-1).cpu().numpy(), color=color, width=200)
     axs[1].set_title("Probability Distribution")
-    axs[1].plot(torch.arange(200, 3600), norm_distribution.log_prob(torch.arange(200, 3600)).exp().cpu().numpy(), color=color)
+    axs[1].plot(torch.arange(0, 4000), norm_distribution.log_prob(torch.arange(0, 4000)).exp().cpu().numpy(), color=color)
 
 plt.show()

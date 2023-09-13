@@ -78,16 +78,15 @@ def predict_game(is_chessdotcom, game, engine, game_index):
 
     analysis = game_analysis.analyze_game(
         game, engine, progress_bar=True, time_limit=0.1)
-
+    
     func = position_converters.fen_to_board_mirror
     positions, _elo = position_converters.convert_position(game, func)
 
     predictions = get_ai_prediction(
         (positions.to(device), analysis.to(device)))
-
     final_predictions = get_elo_prediction(predictions[-1], is_chessdotcom, round=True)
     print(
-        f"Models predictions for game {game_index} are: \n{final_predictions[0][0]} for white\n{final_predictions[1][0]} for black")
+        f"Models predictions for game {game_index} are: \n{final_predictions[0]} for white\n{final_predictions[1]} for black")
 
     return predictions
 

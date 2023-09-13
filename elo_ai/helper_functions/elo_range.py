@@ -22,7 +22,7 @@ def calculate_rating_ranges(true_elo):
         true_elo = true_elo.view(-1, 1)
     if true_elo.device != device:
         true_elo = true_elo.to(device)
-    stdev = 280
+    stdev = 200
     norm_distribution = torch.distributions.Normal(true_elo, stdev)
     return norm_distribution.cdf(rating_ranges[:, 1]) - norm_distribution.cdf(rating_ranges[:, 0])
 

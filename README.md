@@ -47,7 +47,7 @@ Between the green lines is 50% of the data.  Additionally, 90% of the prediction
 
 The points follow the lines pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
 
-Keeping in mind that a player's strength was modeled as a normal distribution, according to the 68-95-99 rule, we should expect 68% of the predictions to fall within one standard deviation from the mean, 95% within two and 99% within three. In reality, the model's predictions fall 67% of the time within one standard deviation (280 points) from the true elo of the player, 94% within two and 98.7% within three. That means the model is very close to the expected accuracy.
+Keeping in mind that a player's strength was modeled as a normal distribution, according to the 68-95-99 rule, we should expect 68% of the predictions to fall within one standard deviation from the mean, 95% within two and 99% within three. In reality, the model's predictions fall 58.2% of the time within one standard deviation (280 points) from the true elo of the player, 87% within two and 95.2% within three. That means the model is not far from the expected accuracy.
 
 These results can be found in the  [jupyter notebook](/elo_ai/models/rating_ranges/lstm_train_rating_ranges.ipynb).
 
