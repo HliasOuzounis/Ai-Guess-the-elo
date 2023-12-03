@@ -6,6 +6,8 @@ I had this idea in mind before chess.com released their version of an elo guessi
 
 All the effort on the project is condensed into a single file. You can run the `guess_the_elo.py` file with a pgn file as an argument. It will analyze the game, load the ai model and make a rating prediction for white and for black. For more info check [Usage instructions](#usage).
 
+This project was submitted to the [AI-Hub Patras 2nd AI competition](https://sites.google.com/g.upatras.gr/ai-hub/%CE%B4%CE%B9%CE%B1%CE%B3%CF%89%CE%BD%CE%B9%CF%83%CE%BC%CF%8C%CF%82-%CF%84%CE%BD/2023-%CE%B1%CF%80%CE%BF%CF%84%CE%B5%CE%BB%CE%AD%CF%83%CE%BC%CE%B1%CF%84%CE%B1) and won 2nd place. An accomondating video was made for the competition and can be found [here](https://youtu.be/Tjw_lyflqh0). The video is in Greek.
+
 ## The Backbone
 
 The project uses LSTM models from the [PyTorch](https://pytorch.org) library to make the elo predictions. The models are fed games analyzed by stockfish and the [python-chess](https://python-chess.readthedocs.io/en/latest/#) library.
@@ -47,9 +49,14 @@ Between the green lines is 50% of the data.  Additionally, 90% of the prediction
 
 The points follow the lines pretty closely meaning the model has understood the differences between a good and a not so good player and can make predictions accordingly. It's clear though that the model has some troubles predicting low elo games and very high elo games. For games <1000 elo, the model tends to overestimate the player and for games >2600 it tends to underestimate them. The tradeoff is a good modeling of the middle of the rating ladder.
 
-Keeping in mind that a player's strength was modeled as a normal distribution, according to the 68-95-99 rule, we should expect 68% of the predictions to fall within one standard deviation from the mean, 95% within two and 99% within three. In reality, the model's predictions fall 58.2% of the time within one standard deviation (280 points) from the true elo of the player, 87% within two and 95.2% within three. That means the model is not far from the expected accuracy.
+Keeping in mind that a player's strength was modeled as a normal distribution, according to the 68-95-99 rule, we should expect 68% of the predictions to fall within one standard deviation from the mean, 95% within two and 99% within three. In reality, the model's predictions fall 60.5% of the time within one standard deviation (200 points) from the true elo of the player, 87.7% within two and 96.6% within three. That means the model is not far from the expected accuracy.
 
 These results can be found in the  [jupyter notebook](/elo_ai/models/rating_ranges/lstm_train_rating_ranges.ipynb).
+
+We can also visualize how the models predictions change after each move and converge to a normal distribution. At the start, the probabilities
+are uniform but as the game goes on, we can clearly seen the curve forming. Additionally there may be outstanding moves that skew the distribution a bit, but after some more moves it resets back to a normal distribution.
+
+![Predictions Progression](/elo_ai/models/rating_ranges/Graphs/animation.gif)
 
 ## Usage
 
@@ -72,7 +79,7 @@ Because the games need to be analyzed by an engine first, you need to have a che
 
 Because the training dataset was from lichess.org, the model has learned to predict lichess ratings. If your game is from chess.com pass the -c flag so the elo gets converted. On average chess.com ratings are 400 points lower than lichess.org.
 
-If you want to visualize the predictions and see the probability distributions it predicts at each move, pass the -v flag. It will display the predictions at each move in a new window where you can navigate with the arrow keys. The predictions displayed will be in the lichess version. Press "ESC" or "q" to exit.
+If you want to visualize the predictions and see the probability distributions it predicts at each move, pass the -v flag. It will display the predictions at each move in a new window where you can navigate with the arrow keys. Press "ESC" or "q" to exit.
 
 Finally, pass the pgn file which contains the game as the last argument. It needs to be parsable by chess.pgn.read_game(). If you copy the pgn from the website's "share" feature onto a plain text file it should be good enough.
 
@@ -111,7 +118,7 @@ That's not very close to both of our ratings, it's within 2 standard deviations.
 
 We should keep in mind that guessing a player's rating off of a single game is not a very good metric since players can have good or bad games.
 
-Additionally, a player can't show his full level if their opponent plays badly and hands him the win. That means a player's elo prediction is indirectly affected by his opponent. (though the models judge a player solely on his moves, the positions that arise, which are determined by both players, are also taken into account)
+Additionally, a player can't show his full level if their opponent plays badly and hands him the win. That means a player's elo prediction is indirectly affected by his opponent. (Although the models judge a player solely on his moves, the positions that arise, which are determined by both players, are also taken into account)
 
 Also, those ratings depend a lot on the stockfish evaluation of each game which isn't totally consistent even when analyzing the same game.
 
