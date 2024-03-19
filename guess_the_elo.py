@@ -46,7 +46,7 @@ def load_model():
     model = complex_network.EloGuesser(
         input_size, input_channels=channels, num_classes=classes)
     model.load_state_dict(torch.load(
-        "elo_ai/models/rating_ranges/boards_mirrors.pt"))
+        "elo_ai/models/rating_ranges/boards_mirrors.pt", map_location=get_device()))
     return model
 
 
