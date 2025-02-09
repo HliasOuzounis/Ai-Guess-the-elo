@@ -37,7 +37,7 @@ def convert_position(game, func):
         white_elo = int(game.headers["WhiteElo"]) if "WhiteElo" in game.headers else 0
         black_elo = int(game.headers["BlackElo"]) if "BlackElo" in game.headers else 0
     except ValueError:
-        return torch.stack((white_positions, black_positions)), None
+        return torch.stack((white_positions, black_positions)), torch.Tensor([1500, 1500])
     
     return torch.stack((white_positions, black_positions)), torch.Tensor([white_elo, black_elo])
 
