@@ -24,15 +24,18 @@ arch = [
 
     to_Sum('cat', offset="(1,0,0)", to="(pool2-east)", opacity=0.7),
 
+    to_SoftMax('dense', offset="(1,0,0)", to="(cat-east)", s_filer=2, height=30, depth=1, opacity=0.9),
+    to_connection('cat', 'dense'),
+
     to_SoftMax('eval', offset="(-3, -2, 0)", to='(0,0,0)', s_filer=2, height=20, depth=1, opacity=0.9, caption="Eval"),
 
     to_connection('pool2', 'cat'),
     to_connection('eval', 'cat'),
 
-    to_UnPool('lstm', offset="(1,0,0)", to="(cat-east)", width=20, height=20, depth=20, opacity=0.9, caption="LSTM"),
-    to_connection('cat', 'lstm'),
+    to_UnPool('lstm', offset="(2,0,0)", to="(dense-east)", width=20, height=20, depth=20, opacity=0.9, caption="LSTM"),
+    to_connection('dense', 'lstm'),
 
-    to_SoftMax('output', offset="(1,0,0)", to="(lstm-east)", height=30, depth=1, opacity=0.9, caption="Output"),
+    to_SoftMax('output', offset="(2,0,0)", to="(lstm-east)", height=30, depth=1, opacity=0.9, caption="Output"),
     to_connection('lstm', 'output'),
     
     to_end()
