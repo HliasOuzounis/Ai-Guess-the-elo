@@ -16,6 +16,10 @@ LSTM models were used, firstly as a learning experience, and secondly because th
 
 For the training data, games from all elo ranges from the [open lichess database June 2018](https://database.lichess.org/) were used after they were analyzed and modified accordingly. To speed up the process of uniformly selecting games of all elo ranges I used [pgn-extract](https://www.cs.kent.ac.uk/people/staff/djb/pgn-extract/).
 
+<p align="center">
+  <img src="./elo_ai/models/rating_ranges/Graphs/architecture.png" alt="model architecture">
+</p>
+
 ## Results
 
 The model trained, as explained in the [Decisions Explained](/elo_ai/models/Decisions_Explained.md) file predicts the probability of player's elo falling in some rating range. From 0 to 4000 with a 100 elo step, 39 total ranges.
