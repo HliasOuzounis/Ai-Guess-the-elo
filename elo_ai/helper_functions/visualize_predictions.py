@@ -1,72 +1,120 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import numpy as np
 
+import chess.pgn
+import chess.svg
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
+from PIL import Image, ImageTk
+import io
+import cairosvg
+
 from elo_ai.helper_functions.elo_range import get_elo_prediction, get_rating_ranges
+import torch
 
 rating_ranges = get_rating_ranges()[:, 0].tolist()
 
 
-def plot_predictions(sequential_predictions, is_chessdotcom=False):
-    current_index = 0
-    max_index = len(sequential_predictions) - 1
+def plot_predictions(sequential_predictions, game, is_chessdotcom=False, save=False):    
+    padding = torch.full_like(sequential_predictions[0], 1 / len(rating_ranges))
+    sequential_predictions = [padding] + sequential_predictions
+    moves = list(game.mainline_moves())
 
-    def on_key(event):
-        nonlocal current_index
-        if event.key == 'right' and current_index < max_index:
-            current_index += 1
-        elif event.key == 'left' and current_index > 0:
-            current_index -= 1
-        elif event.key in ('escape', 'q'):
-            plt.close()
-            return
+    move_counter = 0
+    
+    root, chessboard, ax, canvas = init_window()
+    plot_chessboard(chessboard, moves, move_counter)
+    plot_preditions(ax, sequential_predictions, move_counter, is_chessdotcom)
 
-        white_ax.cla()
-        plot_index(axis=white_ax, color='blue', name="White")
-        black_ax.cla()
-        plot_index(axis=black_ax, color='orange', name="Black")
+    def update(next_move):
+        nonlocal move_counter
+        if next_move and move_counter < len(moves):
+            move_counter += 1
+        if (not next_move) and  move_counter > 0:
+            move_counter -= 1
+        
+        idx = move_counter
+            
+        plot_chessboard(chessboard, moves, idx)
+        plot_preditions(ax, sequential_predictions, idx, is_chessdotcom)
+        canvas.draw()
+        
+    root.bind('<Left>', lambda event: update(False))
+    root.bind('<Right>', lambda event: update(True))
+    
+    root.mainloop()
 
-        plt.draw()
+def plot_chessboard(chessboard, moves, idx):
+    chessboard.config(image="")
 
-    def plot_index(axis, color, name):
-        is_white = 0 if name == "White" else 1
-        bar = axis.bar(np.arange(len(rating_ranges)),
-                       sequential_predictions[current_index][is_white].tolist(), color=color)
-        axis.set_title(
-            f'{name}\nMove: {current_index + 1}, Prediction: {get_elo_prediction(sequential_predictions[current_index][is_white], is_chessdotcom)}')
-        axis.set_xlabel('Rating Range')
-        axis.set_ylabel('Probability')
-        axis.set_xticks(range(0, len(rating_ranges), 5))
-        axis.set_xticklabels(rating_ranges[::5])
-        axis.set_ylim(0, 0.2)
-        return bar
+    board = chess.Board()
+    for i in range(idx):
+        board.push(moves[i])
+    
+    svg = chess.svg.board(board=board, size=800)
+    img = svg_to_image(svg)
+    chessboard.img = ImageTk.PhotoImage(img)
+    chessboard.config(image=chessboard.img)
 
-    fig, (white_ax, black_ax) = plt.subplots(1, 2, figsize=(14, 7))
-    fig.canvas.mpl_connect('key_press_event', on_key)
+def plot_preditions(axs, predictions, idx, is_chessdotcom):
+    plot_bar_graph(axs[0], predictions, (idx + 1) // 2, 0, is_chessdotcom)
+    plot_bar_graph(axs[1], predictions, idx // 2, 1, is_chessdotcom)
+    
 
-    # plt.tight_layout()
+def plot_bar_graph(ax, predicitons, idx, is_black, is_chessdotcom):    
+    ax.cla()
+    ax.bar(np.arange(len(rating_ranges)), predicitons[idx][is_black].tolist(), color='blue' if is_black else 'orange')
+    ax.set_title(f'{"Black" if is_black else "White"}\nMove: {idx}, Prediction: {get_elo_prediction(predicitons[idx][is_black], is_chessdotcom)}')
+    
+    ax.set_xlabel('Rating Range')
+    ax.set_ylabel('Probability')
+    
+    ax.set_xticks(range(0, len(rating_ranges), 5))
+    ax.set_xticklabels(rating_ranges[::5])
+    ax.set_yticks([])
+    ax.set_ylim(0, 0.15)
 
-    white_bar = plot_index(axis=white_ax, color='blue', name="White")
-    black_bar = plot_index(axis=black_ax, color='orange', name="Black")
+# Function to convert SVG to an image usable in tkinter
+def svg_to_image(svg):
+    """Convert an SVG string to a PIL Image."""
+    png_data = cairosvg.svg2png(bytestring=svg)
+    return Image.open(io.BytesIO(png_data))
+    
 
-    ## Animation
-    # def animate(i):
-    #     white_ax.set_title(
-    #         f'{"White"}\nMove: {i + 1}, Prediction: {get_elo_prediction(sequential_predictions[i][0], is_chessdotcom)}')
-    #     black_ax.set_title(
-    #         f'{"Black"}\nMove: {i + 1}, Prediction: {get_elo_prediction(sequential_predictions[i][1], is_chessdotcom)}')
-    #     for i, (white, black) in enumerate(zip(sequential_predictions[i][0], sequential_predictions[i][1])):
-    #         white_bar[i].set_height(white.item())
-    #         black_bar[i].set_height(black.item())
-    #     return white_bar, black_bar
+def init_window():
+    # Create the tkinter window
+    root = tk.Tk()
+    root.title("Chess Game Visualizer")
 
-    # ani = animation.FuncAnimation(fig, animate, blit=False, frames=len(
-    #     sequential_predictions), repeat=False)
-    # ani.save('elo_ai/models/rating_ranges/Graphs/animation.gif', writer='imagemagick', fps=2)
-    plt.show()
+    # Create a frame for the chessboard
+    chessboard_frame = tk.Frame(root)
+    chessboard_frame.pack(side=tk.LEFT)
+
+    # Create a label to display the chessboard
+    chessboard_label = tk.Label(chessboard_frame)
+    chessboard_label.pack()
+
+    # Create a frame for the matplotlib graph
+    graph_frame = tk.Frame(root)
+    graph_frame.pack(side=tk.RIGHT)
+
+    # Create a matplotlib figure and embed it in the tkinter window
+    fig, ax = plt.subplots(2, 1, figsize=(6, 8))
+    fig.subplots_adjust(hspace=0.5)
+    canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+    canvas.get_tk_widget().pack()
+    
+    return root, chessboard_label, ax, canvas
 
 
 if __name__ == "__main__":
-    import torch
-    sequential_predictions = torch.rand(10, 2, len(rating_ranges)).to("cuda")
-    plot_predictions(sequential_predictions)
+    game = chess.pgn.read_game(open("game.pgn"))
+
+    # Generate random predictions for demonstration purposes
+    num_moves = len(list(game.mainline_moves()))
+    num_classes = len(rating_ranges)
+    preds = [torch.rand((2, num_classes)) for _ in range(num_moves)]
+
+    # Plot the predictions
+    plot_predictions(preds, game, save=True)

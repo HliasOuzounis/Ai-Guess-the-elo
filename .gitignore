@@ -7,3 +7,4 @@ datasets/*/*.pt
 *.egg-info
 /.vscode
 temp
+**/vis

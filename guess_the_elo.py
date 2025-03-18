@@ -69,7 +69,7 @@ def main():
             predictions = predict_game(
                 is_chessdotcom, game, engine, game_index)
             if visualize:
-                plot_predictions(predictions)
+                plot_predictions(predictions, game, is_chessdotcom)
 
     engine.close()
 

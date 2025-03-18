@@ -6,6 +6,7 @@ python-chess
 # Visualization and plotting
 tqdm
 matplotlib
+cairosvg
 
 # Local library to import helpful functions and the trained model
 -e .
